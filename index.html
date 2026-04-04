@@ -3,155 +3,1213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تقرير رصد الفرص — 2026-04-03</title>
+<title>YC Scout Dashboard — 2026-04-04</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #F8FAFC; color: #1E293B; direction: rtl; padding: 20px; max-width: 1200px; margin: 0 auto; }
-.header { background: #fff; border-radius: 16px; padding: 28px; margin-bottom: 20px; border: 1px solid #E2E8F0; }
-.header h1 { font-size: 22px; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
-.header p { font-size: 13px; color: #64748B; line-height: 1.7; }
-.stats { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
-.stat { background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 18px; text-align: center; flex: 1; min-width: 100px; }
-.stat-num { font-size: 22px; font-weight: 800; }
-.stat-label { font-size: 11px; color: #94A3B8; margin-top: 2px; }
-.section { background: #fff; border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid #E2E8F0; }
-.section h2 { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: #0F172A; }
-.card { border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; border-right: 4px solid #3B82F6; }
-.card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-.card p { font-size: 13px; color: #475569; line-height: 1.8; margin-bottom: 6px; }
-.badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-left: 6px; }
-.badge-green { background: #F0FDF4; color: #16A34A; border: 1px solid #BBF7D0; }
-.badge-yellow { background: #FFFBEB; color: #CA8A04; border: 1px solid #FDE68A; }
-.badge-red { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; }
-.badge-blue { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
-.micro { border-right-color: #F59E0B; background: #FFFBEB; }
-.micro h3 { color: #92400E; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-.macro-card { background: linear-gradient(135deg, #F0FDF4, #ECFDF5); border: 1px solid #BBF7D0; border-radius: 10px; padding: 12px 16px; }
-.macro-label { font-size: 11px; color: #166534; font-weight: 600; }
-.macro-value { font-size: 18px; font-weight: 800; color: #15803D; }
-.footer { text-align: center; padding: 16px; font-size: 11px; color: #94A3B8; margin-top: 20px; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-th { background: #F8FAFC; padding: 10px 12px; text-align: right; font-weight: 700; color: #475569; border-bottom: 2px solid #E2E8F0; }
-td { padding: 10px 12px; border-bottom: 1px solid #F1F5F9; }
-tr:hover { background: #F8FAFC; }
+:root {
+  --bg:#f8fafc; --surface:#fff; --border:#e2e8f0;
+  --text:#1e293b; --muted:#64748b; --faint:#94a3b8;
+  --primary:#2563eb; --success:#16a34a; --warn:#d97706; --danger:#dc2626;
+  --micro:#f59e0b; --purple:#7c3aed;
+  --r:12px; --rsm:8px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --sh-lg:0 10px 30px rgba(0,0,0,.13);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Tajawal','Segoe UI',sans-serif;background:var(--bg);color:var(--text);direction:rtl;min-height:100vh}
+
+/* ── Header ── */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;position:sticky;top:0;z-index:100}
+.hdr-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:20px}
+.logo{font-size:20px;font-weight:900}.logo span{color:var(--primary)}
+.hstats{display:flex;gap:20px;margin-right:auto}
+.hs{text-align:center}
+.hs-n{font-size:18px;font-weight:800;line-height:1}
+.hs-l{font-size:10px;color:var(--muted);margin-top:2px}
+.scan-lbl{font-size:11px;color:var(--faint);white-space:nowrap}
+
+/* ── Tabs nav ── */
+.tabs-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:57px;z-index:99}
+.tabs-inner{max-width:1400px;margin:0 auto;display:flex;overflow-x:auto}
+.tab-btn{padding:13px 18px;font-size:13px;font-weight:600;font-family:'Tajawal',sans-serif;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary)}
+
+/* ── Layout ── */
+.main{max-width:1400px;margin:0 auto;padding:20px 24px}
+
+/* ── Sectors 3-level layout ── */
+.sec-layout{display:grid;grid-template-columns:210px 1fr;gap:18px;align-items:start}
+.sec-sidebar{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);position:sticky;top:116px;overflow:hidden}
+.sidebar-hd{padding:11px 14px;font-size:10px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.sec-pill{display:flex;align-items:center;gap:9px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;transition:background .1s}
+.sec-pill:last-child{border-bottom:none}
+.sec-pill:hover{background:var(--bg)}
+.sec-pill.active{background:#eff6ff;color:var(--primary);font-weight:700}
+.sec-pill .pc{margin-right:auto;font-size:10px;background:var(--border);border-radius:10px;padding:1px 7px}
+.sec-pill.active .pc{background:#bfdbfe;color:var(--primary)}
+
+/* ── Toolbar (search + filters) ── */
+.toolbar{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap}
+.search-inp{flex:1;min-width:180px;padding:9px 14px;border-radius:var(--rsm);border:1px solid var(--border);font-size:13px;font-family:'Tajawal',sans-serif;background:var(--surface);direction:rtl}
+.search-inp:focus{outline:2px solid var(--primary);border-color:transparent}
+.flt-btn{padding:7px 13px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;font-family:'Tajawal',sans-serif;cursor:pointer;transition:all .1s}
+.flt-btn:hover{background:var(--bg)}
+.flt-btn.fa{background:var(--success);color:#fff;border-color:var(--success)}
+.flt-btn.fw{background:var(--warn);color:#fff;border-color:var(--warn)}
+.flt-btn.fd{background:var(--danger);color:#fff;border-color:var(--danger)}
+.flt-btn.fp{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* ── Sector overview grid ── */
+.sec-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.sec-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:18px;cursor:pointer;transition:box-shadow .15s,transform .15s}
+.sec-card:hover{box-shadow:var(--sh-lg);transform:translateY(-2px)}
+.sc-icon{font-size:28px;margin-bottom:8px}
+.sc-name{font-size:15px;font-weight:800;margin-bottom:2px}
+.sc-en{font-size:11px;color:var(--muted);margin-bottom:10px}
+.sc-stats{display:flex;gap:18px}
+.sc-sn{font-size:20px;font-weight:800}.sc-sl{font-size:10px;color:var(--muted)}
+.sc-signal{display:inline-block;margin-top:10px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px}
+
+/* ── Opportunity cards ── */
+.opp-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);border-right:4px solid var(--primary);padding:14px 18px;margin-bottom:10px;cursor:pointer;display:flex;gap:14px;align-items:flex-start;transition:box-shadow .15s,transform .12s}
+.opp-card:hover{box-shadow:var(--sh-lg);transform:translateY(-1px)}
+.opp-card.bm{border-right-color:var(--micro)}
+.opp-body{flex:1;min-width:0}
+.opp-name{font-size:14px;font-weight:700;margin-bottom:3px}
+.opp-meta{font-size:11px;color:var(--muted);margin-bottom:6px}
+.opp-desc{font-size:12px;color:var(--muted);line-height:1.7;margin-bottom:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.opp-footer{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.sr-wrap{flex-shrink:0}
+.bm-btn{width:30px;height:30px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .1s}
+.bm-btn:hover,.bm-btn.on{background:#fffbeb;border-color:var(--micro)}
+
+/* ── Badges ── */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bg{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.by{background:#fffbeb;color:#b45309;border:1px solid #fde68a}
+.br{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.bb{background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
+.bp{background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe}
+.bo{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+
+/* ── Detail panel ── */
+.det-ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none}
+.det-ov.open{display:block}
+.det-panel{position:fixed;top:0;left:0;width:680px;max-width:96vw;height:100vh;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;z-index:201;transform:translateX(-100%);transition:transform .25s ease}
+.det-panel.open{transform:translateX(0)}
+.det-hdr{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:14px;position:sticky;top:0;background:var(--surface);z-index:1}
+.det-close{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:auto;transition:background .1s}
+.det-close:hover{background:var(--border)}
+.det-body{padding:22px}
+.det-sec{margin-bottom:22px}
+.det-sec-title{font-size:11px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+
+/* ── Score breakdown ── */
+.sbr{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:12px}
+.sbr-lbl{flex:1;color:var(--muted)}
+.sbr-bar{width:90px;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.sbr-fill{height:100%;border-radius:3px;background:var(--primary)}
+.sbr-sc{font-weight:700;min-width:36px;text-align:center;font-size:12px}
+
+/* ── TAM / SAM / SOM ── */
+.tsm{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tsm-c{background:var(--bg);border-radius:var(--rsm);padding:12px;text-align:center;border:1px solid var(--border)}
+.tsm-l{font-size:10px;font-weight:700;color:var(--muted);margin-bottom:3px}
+.tsm-v{font-size:13px;font-weight:800}
+
+/* ── Unit economics ── */
+.ue{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.ue-c{background:var(--bg);border-radius:var(--rsm);padding:11px;border:1px solid var(--border)}
+.ue-l{font-size:10px;color:var(--muted);margin-bottom:2px}
+.ue-v{font-size:14px;font-weight:800}
+
+/* ── Financial projections ── */
+.fp-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.fp-tbl th{background:var(--bg);padding:7px 9px;text-align:center;font-weight:700;color:var(--muted);border:1px solid var(--border)}
+.fp-tbl td{padding:7px 9px;text-align:center;border:1px solid var(--border)}
+.fp-tbl tr:hover td{background:var(--bg)}
+
+/* ── Risk analysis ── */
+.risk-row{background:var(--bg);border-radius:var(--rsm);padding:11px 14px;margin-bottom:7px;border:1px solid var(--border)}
+.rr-hdr{display:flex;gap:7px;align-items:center;margin-bottom:5px}
+.rr-name{font-weight:600;font-size:12px;flex:1}
+.rr-mit{font-size:11px;color:var(--muted)}
+
+/* ── Roadmap ── */
+.rm-phase{display:flex;gap:14px;margin-bottom:14px}
+.rm-dot{width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.rm-body{flex:1}
+.rm-name{font-weight:700;font-size:12px}
+.rm-dur{font-size:10px;color:var(--muted);margin-bottom:4px}
+.rm-task{font-size:11px;color:var(--muted)}
+.rm-task::before{content:'• '}
+
+/* ── Indicators ── */
+.ind-row{display:flex;gap:10px;align-items:center;padding:7px 11px;border-radius:var(--rsm);background:var(--bg);margin-bottom:5px;font-size:12px}
+.ind-pos{color:var(--success);font-weight:700}
+.ind-gap{color:var(--warn);font-weight:700}
+.ind-neg{color:var(--danger);font-weight:700}
+
+/* ── Economy tab ── */
+.mac-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:11px;margin-bottom:22px}
+.mac-c{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0;border-radius:var(--r);padding:14px}
+.mac-l{font-size:10px;color:#166534;font-weight:700;margin-bottom:3px}
+.mac-v{font-size:19px;font-weight:800;color:#15803d}
+.mac-m{font-size:10px;color:#4ade80;margin-top:1px}
+.sec-ctx-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);border-right:4px solid var(--primary);padding:14px 18px;margin-bottom:10px}
+.scc-name{font-size:13px;font-weight:700;margin-bottom:5px}
+.scc-text{font-size:12px;color:var(--muted);line-height:1.8}
+
+/* ── Charts tab ── */
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:18px}
+.ch-card{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:18px}
+.ch-title{font-size:13px;font-weight:700;margin-bottom:14px}
+
+/* ── Risk Matrix tab ── */
+.matrix-wrap{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:20px}
+.matrix-title{font-size:14px;font-weight:700;margin-bottom:16px}
+.matrix-labels{display:flex;gap:4px;margin-bottom:4px;margin-right:48px}
+.matrix-lbl{flex:1;text-align:center;font-size:10px;font-weight:600;color:var(--muted)}
+.matrix-rows{display:flex;flex-direction:column;gap:4px}
+.matrix-row{display:flex;gap:4px;align-items:stretch}
+.matrix-row-lbl{width:44px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--muted);writing-mode:vertical-rl;text-align:center;flex-shrink:0}
+.matrix-cell{flex:1;min-height:80px;border-radius:6px;border:1px solid var(--border);padding:5px;overflow:hidden}
+.mc-00{background:#fff1f2}.mc-01{background:#fff7ed}.mc-02{background:#fffbeb}.mc-03{background:#f0fdf4}.mc-04{background:#f0fdf4}
+.mc-10{background:#fff1f2}.mc-11{background:#fff7ed}.mc-12{background:#fffbeb}.mc-13{background:#fffbeb}.mc-14{background:#f0fdf4}
+.mc-20{background:#fef2f2}.mc-21{background:#fff1f2}.mc-22{background:#fffbeb}.mc-23{background:#fffbeb}.mc-24{background:#fffbeb}
+.mc-30{background:#fef2f2}.mc-31{background:#fef2f2}.mc-32{background:#fff1f2}.mc-33{background:#fffbeb}.mc-34{background:#fffbeb}
+.mc-40{background:#fef2f2}.mc-41{background:#fef2f2}.mc-42{background:#fef2f2}.mc-43{background:#fff1f2}.mc-44{background:#fffbeb}
+.mat-chip{font-size:9px;padding:2px 5px;border-radius:4px;background:var(--primary);color:#fff;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;transition:opacity .1s}
+.mat-chip:hover{opacity:.8}
+.matrix-legend{display:flex;gap:16px;margin-top:14px;font-size:11px;align-items:center;flex-wrap:wrap}
+.ml-item{display:flex;align-items:center;gap:5px}
+.ml-box{width:12px;height:12px;border-radius:3px}
+
+/* ── Micro tab ── */
+.micro-sub-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.mst-btn{padding:8px 15px;border-radius:var(--rsm);border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;font-family:'Tajawal',sans-serif;cursor:pointer;transition:all .1s}
+.mst-btn.active{background:var(--micro);color:#fff;border-color:var(--micro)}
+.micro-card{background:#fffbeb;border-radius:var(--r);border:1px solid #fde68a;border-right:4px solid var(--micro);padding:14px 18px;margin-bottom:10px;cursor:pointer;transition:box-shadow .15s}
+.micro-card:hover{box-shadow:var(--sh-lg)}
+.mc-name{font-size:14px;font-weight:700;color:#92400e;margin-bottom:3px}
+.mc-meta{font-size:11px;color:#b45309;margin-bottom:7px}
+.mc-stats{display:flex;gap:14px;flex-wrap:wrap;font-size:12px}
+
+/* ── Feasibility Calculator ── */
+.calc-panel{background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:22px;margin-bottom:18px}
+.calc-panel h3{font-size:14px;font-weight:700;margin-bottom:14px}
+.calc-fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:18px}
+.cf label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.cf input[type=range]{width:100%;accent-color:var(--primary)}
+.cf .vd{font-size:15px;font-weight:800;color:var(--primary);margin-top:3px}
+.calc-res{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.cr-c{background:var(--bg);border-radius:var(--rsm);padding:12px;text-align:center;border:1px solid var(--border)}
+.cr-n{font-size:20px;font-weight:800;color:var(--primary)}
+.cr-l{font-size:10px;color:var(--muted)}
+
+/* ── Setup paths ── */
+.paths-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+.path-card{background:var(--surface);border-radius:var(--r);border:2px solid var(--border);padding:18px;cursor:pointer;transition:all .15s;text-align:center}
+.path-card:hover,.path-card.active{border-color:var(--primary);background:#eff6ff}
+.pc-icon{font-size:30px;margin-bottom:8px}
+.pc-name{font-size:13px;font-weight:700;margin-bottom:5px}
+.pc-cost{font-size:11px;color:var(--muted);margin-bottom:10px}
+.pc-detail{font-size:11px;color:var(--muted);line-height:1.7;text-align:right}
+
+/* ── Support programs table ── */
+.sup-tbl{width:100%;border-collapse:collapse;font-size:12px}
+.sup-tbl th{background:var(--bg);padding:9px 11px;text-align:right;font-weight:700;color:var(--muted);border-bottom:2px solid var(--border)}
+.sup-tbl td{padding:9px 11px;border-bottom:1px solid var(--border)}
+.sup-tbl tr:hover td{background:var(--bg)}
+
+/* ── Bookmarks empty state ── */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+
+/* ── Section divider ── */
+.sec-divider{font-size:12px;font-weight:700;color:var(--muted);padding:8px 0;margin-bottom:8px;border-bottom:1px solid var(--border)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .sec-layout{grid-template-columns:1fr}
+  .sec-sidebar{position:static}
+  .tsm{grid-template-columns:repeat(3,1fr)}
+  .charts-grid{grid-template-columns:1fr}
+  .paths-grid{grid-template-columns:1fr}
+  .det-panel{width:100%}
+  .ue{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
+<div id="app"></div>
+<div id="det-ov" class="det-ov" onclick="closeDetail()"></div>
+<div id="det-panel" class="det-panel"><div id="det-content"></div></div>
 
-<div class="header">
-    <h1>🔍 تقرير رصد الفرص في السوق السعودي</h1>
-    <p>YC Scout Agent v3 · تاريخ المسح: 2026-04-03 · مدعوم بـ DataSaudi.sa + 28 استراتيجية وطنية</p>
-    <div class="stats">
-        <div class="stat"><div class="stat-num" style="color:#0F172A">1</div><div class="stat-label">قطاعات</div></div>
-        <div class="stat"><div class="stat-num" style="color:#2563EB">3</div><div class="stat-label">فرص كبيرة</div></div>
-        <div class="stat"><div class="stat-num" style="color:#F59E0B">3</div><div class="stat-label">فرص تحت 100K</div></div>
-        <div class="stat"><div class="stat-num" style="color:#16A34A">91</div><div class="stat-label">أعلى ملاءمة</div></div>
+<script>
+const D={"scan_date":"2026-04-04","datasaudi":{"last_update":"2026-03","source":"datasaudi.sa — وزارة الاقتصاد والتخطيط","macro":{"gdp":{"value":"4.9 تريليون ريال","period":"2025","growth":"3.4%"},"non_oil_gdp":{"value":"2.7 تريليون ريال","period":"2025"},"inflation":{"value":"1.7%","period":"فبراير 2026"},"pmi":{"value":56.1,"period":"فبراير 2026","status":"توسّع (فوق 50)"},"unemployment_saudi":{"value":"7.5%","period":"Q3 2025"},"unemployment_youth_female":{"value":"24.2%","period":"Q3 2025"},"unemployment_youth_male":{"value":"13.6%","period":"Q3 2025"},"female_participation":{"value":"33.7%","period":"Q3 2025"},"population":{"value":"35.3 مليون","period":"2024","growth":"4.7%"},"fdi_net_inflow":{"value":"24.9 مليار ريال","period":"Q3 2025","growth":"5.2%"},"business_confidence":{"value":60.7,"period":"فبراير 2026"},"digital_economy_gdp_share":{"value":"16%","period":"2024"},"e_service_establishments":{"value":"20.3%","period":"2022"},"active_enterprises":{"value":"2,045,964","period":"2024"},"business_density":{"value":37.4,"period":"2024"},"pos_sales":{"value":"707 مليار ريال","period":"2025","growth":"5.8%"},"pos_dammam":{"value":"32.9 مليار ريال","period":"2024"},"bank_credits_private":{"value":"3,147 مليار ريال","period":"2025"},"bank_credits_real_estate":{"value":"393.5 مليار ريال","period":"2025"},"real_estate_index":{"value":104.3,"period":"2025","growth":"2%"},"ipi_growth":{"value":"10.4%","period":"يناير 2026"},"non_oil_exports":{"value":"32.6 مليار ريال","period":"يناير 2026"},"rnd_expenditure":{"value":"29.5 مليار ريال","period":"2024"},"renewable_projects":{"value":10,"period":"2024"},"avg_wage":{"value":"5,700 ريال","period":"Q3 2025"},"gosi_employees":{"value":"18.5 مليون","period":"Q3 2025"},"housing_units_saudi":{"value":"3.3+ مليون","period":"2024"},"eastern_dwellings":{"value":"1.9 مليون (15.3%)","period":"2024"},"money_supply_growth":{"value":"8.4%","period":"2025"},"travel_exports":{"value":"39.5 مليار ريال","period":"Q4 2025"}},"sector_context":{"fintech":"نقاط البيع 707 مليار (+5.8%). المنشآت النشطة 2 مليون+. الائتمان الخاص 3,147 مليار. 80% من المنشآت لا تقدم خدمات إلكترونية. الاقتصاد الرقمي 16% من GDP.","healthtech":"الكادر الصحي 547,875 عامل. زيارات العيادات الخاصة 71.3 مليون. إنفاق R&D 29.5 مليار. متوسط العمر 77.9 سنة.","proptech":"مؤشر العقار 104.3 (+2%). ائتمان عقاري 393.5 مليار. 3.3+ مليون وحدة سكنية سعودية. المنطقة الشرقية 1.9 مليون مسكن (15.3%). الدمام ثالث مدينة في نقاط البيع.","edtech":"6 مليون طالب. بطالة شابات 24.2%. بطالة شباب 13.6%. إنفاق R&D التعليم 1.7 مليار. الاقتصاد الرقمي 16% من GDP.","logistics":"صادرات غير نفطية 32.6 مليار. فائض تجاري 17.3 مليار. مؤشر الصناعة +10.4%. ثقة البناء 60.6.","cleantech":"10 مشاريع طاقة متجددة تشغيلية. استهلاك كهرباء 298,701 GWh. نمو صناعي 10.4%.","tourism":"صادرات السفر 39.5 مليار (أكبر صادرات الخدمات). الإقامة والطعام أعلى مؤشر إيرادات تشغيلية. نقاط بيع جدة 93.8 مليار.","gaming":"~30% من السكان أقل من 15 سنة. قطاع الترفيه ينمو. الاقتصاد الرقمي 16% من GDP.","biotech":"إنفاق R&D 29.5 مليار (12.1 مليار قطاع خاص). التصنيع 31% من إجمالي الإيرادات.","hrtech":"18.5 مليون موظف GOSI. متوسط الراتب 5,700 ريال. بطالة سعوديين 7.5%. مشاركة المرأة 33.7% ومتصاعدة."}},"sectors":[{"sector_id":"fintech","error":"Expecting property name enclosed in double quotes: line 146 column 81 (char 8955)","opportunities":[],"micro_opportunities":[]},{"sector_id":"healthtech","sector_name":"التقنية الصحية","sector_name_en":"HealthTech","icon":"🏥","scan_date":"2026-04-04","market_assessment":{"market_size":"14.43 مليار ريال","growth_rate":"19.4%","datasaudi_signals":["الكادر الصحي 547,875 عامل يشير لحاجة أتمتة المهام","71.3 مليون زيارة للعيادات الخاصة تتطلب تحسين الوصول الرقمي","إنفاق R&D 29.5 مليار يدعم البحوث التقنية","ثقة الأعمال 60.7 تدل على استقرار للاستثمار"],"overall_signal":"إيجابي قوي","strategy_alignment":"استراتيجية التحول الصحي","regulatory_body":"وزارة الصحة - SFDA","sandbox":"الحاضنة التنظيمية للرعاية الصحية"},"opportunities":[{"name":"Hims & Hers","score":82,"score_breakdown":{"market_size_growth":{"score":18,"max":20,"note":"السوق الرقمي السعودي 2.37 مليار $ ونمو 19.4%، لكن شح المتخصصين في الصحة الإنجابية"},"vision_2030_alignment":{"score":14,"max":15,"note":"يتوافق مع التحول الصحي ورؤية 2030 للوصول الرقمي"},"market_gap":{"score":15,"max":20,"note":"ثقافة محافظة تتطلب حذر، لكن طلب خاص للاستشارات السرية"},"infrastructure_readiness":{"score":13,"max":15,"note":"منصة سهة وموعد موجودة، حاضنة SFDA نشطة"},"execution_feasibility":{"score":12,"max":15,"note":"متطلبات تنظيمية معقدة وحساسية ثقافية"},"datasaudi_support":{"score":10,"max":15,"note":"71.3 مليون زيارة عيادات يشير لطلب لكن بيانات محددة للصحة الإنجابية ناقصة"}},"valuation":"4 مليار دولار","problem":"صعوبة الوصول لاستشارات صحية حميمة وخاصة، خاصة للنساء. تحديات ثقافية في مناقشة مواضيع حساسة.","solution":"منصة طب عن بعد متخصصة في الصحة الإنجابية والعافية مع حلول علاجية مخصصة وتوصيل دوائي سري.","saudi_opportunity":"مع 24.2% بطالة للشابات و33.7% مشاركة نسائية، هناك طلب لخدمات صحة المرأة المحافظة على الخصوصية","investment_range":"15–30 مليون ريال","time_to_market":"12–18 شهر","risk_level":"متوسط-عالي","risk_num":4,"roi_potential":"مرتفع","roi_num":4,"competitors":["سهة","موعد","تطبيق د. سليمان الحبيب","لبيه","Healthcluster"],"regulations":["ترخيص SFDA للأدوية والأجهزة الطبية","موافقة وزارة الصحة للاستشارات الطبية","حماية البيانات الطبية وفق أنظمة الخصوصية","الامتثال للحاضنة التنظيمية للرعاية الصحية","ترخيص توصيل الأدوية عبر منصات رقمية"],"studies":["دراسة سوق الأدوية والعلاجات التخصصية في السعودية","بحث حول قبول المستهلكين للاستشارات الطبية الرقمية الحساسة","تحليل احتياجات صحة المرأة والرجل في السوق السعودي","دراسة جدوى نماذج التوصيل المباشر للأدوية"],"datasaudi_indicators":[{"indicator":"زيارات العيادات الخاصة","value":"71.3 مليون","signal":"إيجابي","detail":"يدل على طلب عال للخدمات الصحية الخاصة"},{"indicator":"بطالة الشابات","value":"24.2%","signal":"فجوة","detail":"فرصة لتوظيف مختصات صحة المرأة"},{"indicator":"مشاركة المرأة","value":"33.7%","signal":"إيجابي","detail":"نمو مستمر يعكس قبول الخدمات النسائية المتطورة"}],"roadmap":[{"phase":"التأسيس والترخيص","duration":"4-6 أشهر","tasks":["الحصول على تراخيص SFDA ووزارة الصحة","إعداد فريق طبي متخصص"]},{"phase":"تطوير المنصة","duration":"6-8 أشهر","tasks":["بناء التطبيق مع معايير الأمان","تطوير نظام إدارة الأدوية والتوصيل"]},{"phase":"التشغيل التجريبي","duration":"2-3 أشهر","tasks":["اختبار الخدمة مع مجموعة مستخدمين محدودة","تحسين الواجهة والتجربة"]}],"first_steps":["دراسة الجدوى التفصيلية للسوق السعودي","التقديم للحاضنة التنظيمية للرعاية الصحية","تكوين شراكة مع مختصين سعوديين في الصحة الإنجابية","تطوير نموذج أولي يراعي المعايير الثقافية والتنظيمية"],"market_sizing":{"tam":"14.43 مليار ريال (السوق الصحي الرقمي الإجمالي)","sam":"2.16 مليار ريال (قطاع الطب عن بعد والصحة المتخصصة)","som":"216 مليون ريال (حصة 10% من السوق المستهدف)"},"unit_economics":{"cac":"150 ريال","ltv":"2,400 ريال","ltv_cac_ratio":16.0,"gross_margin":"75%"},"revenue_model":{"type":"اشتراك + عمولة على المبيعات","pricing":"99 ريال/شهر للاشتراك الأساسي","arpu":"145 ريال/شهر"},"financial_projections":{"year1":{"optimistic":"8 مليون ريال","expected":"5 مليون ريال","conservative":"3 مليون ريال"},"year2":{"optimistic":"25 مليون ريال","expected":"18 مليون ريال","conservative":"12 مليون ريال"},"year3":{"optimistic":"55 مليون ريال","expected":"40 مليون ريال","conservative":"28 مليون ريال"}},"budget_allocation":{"product_development":"35%","marketing_sales":"25%","operations":"20%","regulatory_legal":"15%","contingency":"5%"},"risk_analysis":[{"risk":"مقاومة ثقافية للصحة الإنجابية الرقمية","probability":"متوسط","impact":"عالي","mitigation":"شراكة مع مؤثرين صحيين محليين وتدريج الخدمات"},{"risk":"تعقيدات تنظيمية في توصيل الأدوية","probability":"عالي","impact":"متوسط","mitigation":"العمل مع الحاضنة التنظيمية والصيدليات المرخصة"},{"risk":"منافسة من منصات موجودة","probability":"عالي","impact":"متوسط","mitigation":"التركيز على التخصص والخصوصية"}],"exit_strategy":{"primary":"استحواذ من قبل مقدم رعاية صحية كبير","timeline":"5-7 سنوات","potential_acquirers":["مجموعة الحبيب الطبية","مستشفى الملك فيصل التخصصي","Health Holdings Company"]},"data_confidence":"متوسط — بيانات السوق العامة متوفرة لكن معلومات محددة حول الصحة الإنجابية محدودة"},{"name":"Viz.ai","score":88,"score_breakdown":{"market_size_growth":{"score":19,"max":20,"note":"AI في الرعاية الصحية 211 مليون $ بنمو 26.1% و70% من المستشفيات تطبق AI"},"vision_2030_alignment":{"score":15,"max":15,"note":"توافق تام مع استراتيجية التحول الصحي والمستشفيات الذكية"},"market_gap":{"score":18,"max":20,"note":"فجوة واضحة في AI التشخيصي المحلي مع طلب متزايد"},"infrastructure_readiness":{"score":14,"max":15,"note":"بنية تحتية رقمية قوية ومستشفيات متقدمة مثل الملك فيصل"},"execution_feasibility":{"score":13,"max":15,"note":"يتطلب خبرات تقنية متقدمة وشراكات طبية"},"datasaudi_support":{"score":14,"max":15,"note":"29.5 مليار R&D و547,875 كادر صحي يدعم الحاجة للأتمتة"}},"valuation":"1.2 مليار دولار","problem":"تأخر في تشخيص الحالات الطارئة مثل السكتات الدماغية والنوبات القلبية. نقص في أطباء الأشعة المتخصصين.","solution":"منصة AI لتحليل الصور الطبية بسرعة وإنذار مبكر للحالات الحرجة مع تكامل مع أنظمة المستشفيات.","saudi_opportunity":"مع 547,875 كادر صحي و29.5 مليار إنفاق R&D، المملكة تستثمر بقوة في التقنيات المساعدة للتشخيص","investment_range":"25–50 مليون ريال","time_to_market":"18–24 شهر","risk_level":"متوسط","risk_num":3,"roi_potential":"مرتفع جداً","roi_num":5,"competitors":["RapidAI","Med-YOLOWorld","King Faisal Hospital AI systems","Augnito","حلول AI محلية ناشئة"],"regulations":["ترخيص SFDA للأجهزة الطبية المدعومة بالذكاء الاصطناعي","موافقة وزارة الصحة لأنظمة التشخيص المساعد","معايير SDAIA للذكاء الاصطناعي في الرعاية الصحية","شهادات الجودة الطبية ISO 13485","الامتثال لمعايير حماية البيانات الطبية"],"studies":["تحليل احتياجات أقسام الأشعة في المستشفيات السعودية","دراسة فعالية حلول AI في تسريع التشخيص","بحث حول قبول الأطباء لأنظمة AI المساعدة","تقييم البنية التحتية التقنية في المستشفيات الرئيسية"],"datasaudi_indicators":[{"indicator":"إنفاق R&D","value":"29.5 مليار ريال","signal":"إيجابي","detail":"استثمار ضخم في البحث والتطوير يدعم حلول AI متقدمة"},{"indicator":"الكادر الصحي","value":"547,875 عامل","signal":"فجوة","detail":"حاجة لأدوات AI لزيادة كفاءة الكادر الموجود"},{"indicator":"متوسط العمر","value":"77.9 سنة","signal":"إيجابي","detail":"شيخوخة السكان تزيد الحاجة لتشخيص سريع ودقيق"}],"roadmap":[{"phase":"البحث والتطوير","duration":"8-10 أشهر","tasks":["تطوير نماذج AI للبيانات الطبية السعودية","الحصول على تراخيص SFDA"]},{"phase":"الشراكات الاستراتيجية","duration":"4-6 أشهر","tasks":["شراكة مع مستشفيات رائدة للتجارب","تدريب الكوادر الطبية"]},{"phase":"النشر التجاري","duration":"6-8 أشهر","tasks":["تطبيق النظام في المستشفيات","توسيع الشبكة"]}],"first_steps":["تأسيس شراكة مع مستشفى الملك فيصل التخصصي أو مجموعة الحبيب","التقديم لـ SDAIA للحصول على إرشادات AI","تكوين فريق تقني محلي مع خبراء AI عالميين","بدء المرحلة التجريبية في قسم أشعة واحد"],"market_sizing":{"tam":"805 مليون ريال (AI في الرعاية الصحية بحلول 2030)","sam":"240 مليون ريال (AI التشخيصي والصور الطبية)","som":"72 مليون ريال (30% من السوق المستهدف خلال 5 سنوات)"},"unit_economics":{"cac":"50,000 ريال لكل مستشفى","ltv":"750,000 ريال لكل مستشفى","ltv_cac_ratio":15.0,"gross_margin":"85%"},"revenue_model":{"type":"ترخيص SaaS + عمولة على كل تشخيص","pricing":"15,000 ريال/شهر لكل قسم أشعة","arpu":"18,000 ريال/شهر لكل عميل"},"financial_projections":{"year1":{"optimistic":"15 مليون ريال","expected":"10 مليون ريال","conservative":"6 مليون ريال"},"year2":{"optimistic":"45 مليون ريال","expected":"32 مليون ريال","conservative":"22 مليون ريال"},"year3":{"optimistic":"85 مليون ريال","expected":"65 مليون ريال","conservative":"45 مليون ريال"}},"budget_allocation":{"product_development":"40%","marketing_sales":"20%","operations":"25%","regulatory_legal":"10%","contingency":"5%"},"risk_analysis":[{"risk":"تعقيدات تنظيمية للأجهزة الطبية AI","probability":"متوسط","impact":"عالي","mitigation":"العمل المبكر مع SFDA والحاضنة التنظيمية"},{"risk":"مقاومة الأطباء لأنظمة AI","probability":"متوسط","impact":"متوسط","mitigation":"برامج تدريب مكثفة وإثبات الفعالية"},{"risk":"تحديات تقنية في دقة التشخيص","probability":"منخفض","impact":"عالي","mitigation":"اختبارات شاملة وتحسين مستمر للنماذج"}],"exit_strategy":{"primary":"استحواذ من شركة تقنية طبية عالمية","timeline":"5-7 سنوات","potential_acquirers":["Philips Healthcare","GE Healthcare","Siemens Healthineers"]},"data_confidence":"عالي — بيانات واضحة حول نمو AI في الرعاية الصحية ودعم حكومي قوي"}],"micro_opportunities":[{"name":"استشارات صحة المرأة عن بعد","derived_from":"Hims & Hers","category":"استشارات","startup_cost":"85,000 ريال","startup_cost_num":85000,"monthly_revenue_estimate":"15,000–25,000 ريال","monthly_costs_estimate":"8,000 ريال","break_even_months":5,"launch_speed":"سريع","launch_days":45,"problem":"نقص في الاستشارات النسائية المتخصصة مع الحفاظ على الخصوصية","solution":"خدمة استشارات طبية نسائية عن بعد مع طبيبات سعوديات مرخصات","how_to_start":"1. الحصول على ترخيص استشارات طبية من وزارة الصحة 2. التعاقد مع 3-5 طبيبات متخصصات 3. إطلاق موقع بسيط مع نظام حجز","saudi_demand_proof":"24.2% بطالة الشابات و33.7% مشاركة المرأة تدل على طلب متنامي للخدمات النسائية المتخصصة","risk_level":"منخفض-متوسط","setup_path":"منشأة_خدمية","setup_costs_breakdown":{"سجل_تجاري":3000,"رخصة":25000,"أدوات_ومعدات":35000,"تسويق_أولي":15000,"أخرى":7000},"support_programs":[{"program":"Monsha'at","body":"الهيئة العامة للمنشآت الصغيرة","benefit":"تمويل 75% من التكاليف","eligibility":"مواطن سعودي"},{"program":"كفالة","body":"البنك السعودي للتسليف والادخار","benefit":"ضمان القروض","eligibility":"مشروع مجدي"}],"local_example":"نجاح تطبيق لبيه في الاستشارات النفسية يثبت قبول الاستشارات الرقمية","is_realistic":true,"realism_note":"واقعية عالية — خدمة بسيطة مطلوبة مع دعم حكومي قوي للصحة الرقمية"},{"name":"تحليل الأشعة بالذكاء الاصطناعي للعيادات","derived_from":"Viz.ai","category":"تقنية","startup_cost":"95,000 ريال","startup_cost_num":95000,"monthly_revenue_estimate":"20,000–35,000 ريال","monthly_costs_estimate":"12,000 ريال","break_even_months":4,"launch_speed":"متوسط","launch_days":90,"problem":"العيادات الصغيرة تحتاج حلول AI لتحليل الأشعة لكن لا تستطيع تحمل الأنظمة الكبيرة","solution":"خدمة SaaS بسيطة لتحليل صور الأشعة الأساسية (X-ray) بواسطة AI","how_to_start":"1. الشراكة مع مبرمج AI متخصص 2. الحصول على ترخيص برمجيات طبية 3. اختبار النظام مع 3 عيادات صغيرة","saudi_demand_proof":"71.3 مليون زيارة للعيادات الخاصة مع 29.5 مليار إنفاق R&D يدل على حاجة للحلول الذكية","risk_level":"متوسط","setup_path":"تجارة_إلكترونية","setup_costs_breakdown":{"سجل_تجاري":3000,"رخصة":20000,"أدوات_ومعدات":50000,"تسويق_أولي":15000,"أخرى":7000},"support_programs":[{"program":"برنامج تقنية المعلومات","body":"وزارة الاتصالات","benefit":"دعم فني وتمويلي","eligibility":"شركة تقنية"},{"program":"الحاضنة التنظيمية","body":"SFDA","benefit":"تسهيل الترخيص","eligibility":"حلول صحية مبتكرة"}],"local_example":"نجاح مستشفى الملك فيصل في تطبيق AI للماموجرام يثبت الحاجة والإمكانية","is_realistic":false,"realism_note":"غير واقعية بـ100K — تطوير AI طبي يحتاج 500K+. البديل: وساطة بين العيادات وشركات AI العالمية"}]},{"sector_id":"proptech","sector_name":"التقنية العقارية","sector_name_en":"PropTech","icon":"🏗️","scan_date":"2026-04-04","market_assessment":{"market_size":"73.8 مليون دولار (280 مليون ريال) - معدل نمو 9.36%","growth_rate":"9.36%","datasaudi_signals":["مؤشر العقار 104.3 (+2%)","ائتمان عقاري 393.5 مليار ريال","3.3+ مليون وحدة سكنية","PMI 56.1 يدل على نمو قطاع البناء"],"overall_signal":"إيجابي قوي","strategy_alignment":"برنامج الإسكان + PropTech Sandbox","regulatory_body":"REGA","sandbox":"PropTech Sandbox"},"opportunities":[{"name":"Lessen","score":78,"score_breakdown":{"market_size_growth":{"score":18,"max":20,"note":"نمو سوق إدارة العقارات بـ9.36% وقطاع البناء 5.37%"},"vision_2030_alignment":{"score":14,"max":15,"note":"يدعم برنامج الإسكان وأهداف رؤية 2030"},"market_gap":{"score":16,"max":20,"note":"32% فقط من شركات إدارة العقارات تستخدم التقنية"},"infrastructure_readiness":{"score":13,"max":15,"note":"16% من GDP رقمي وبنية تحتية قوية"},"execution_feasibility":{"score":12,"max":15,"note":"يتطلب استثمار كبير وشراكات مع مقاولين"},"datasaudi_support":{"score":5,"max":15,"note":"المنطقة الشرقية تمثل 15.3% من الوحدات السكنية"}},"valuation":"1.5 مليار دولار","problem":"صيانة العقارات في السعودية معقدة وباهظة الكلفة. أصحاب العقارات يواجهون صعوبة في إيجاد مقاولين موثوقين وتتبع الصيانة.","solution":"منصة رقمية تربط أصحاب العقارات بمقاولين معتمدين مع تقنية إدارة الصيانة الوقائية والتحليلات التنبؤية.","saudi_opportunity":"مع 3.3 مليون وحدة سكنية و393.5 مليار ريال ائتمان عقاري، السوق جاهز للرقمنة","investment_range":"15-25 مليون ريال","time_to_market":"12-18 شهر","risk_level":"متوسط-عالي","risk_num":4,"roi_potential":"مرتفع","roi_num":4,"competitors":["PACT REVENU","RealEstatePro","B8ak","FalconViz","Ajeer","Muqawiloon"],"regulations":["ترخيص REGA","ترخيص وزارة الشؤون البلدية","اعتماد المقاولين","حماية البيانات","امتثال الضرائب"],"studies":["دراسة سوق المقاولين المحلي","تحليل العملاء المستهدفين","دراسة التنظيمات المحلية","تقييم الشراكات الاستراتيجية"],"datasaudi_indicators":[{"indicator":"مؤشر العقار","value":"104.3 (+2%)","signal":"إيجابي","detail":"نمو مستمر في قطاع العقار"},{"indicator":"ائتمان عقاري","value":"393.5 مليار ريال","signal":"إيجابي","detail":"استثمار كبير في العقارات"},{"indicator":"الاقتصاد الرقمي","value":"16% من GDP","signal":"إيجابي","detail":"جاهزية تقنية عالية"},{"indicator":"PMI","value":"56.1","signal":"إيجابي","detail":"نمو قطاع البناء والتشييد"}],"roadmap":[{"phase":"التأسيس والتطوير","duration":"6 شهور","tasks":["تطوير MVP","الحصول على التراخيص","بناء فريق محلي"]},{"phase":"الإطلاق التجريبي","duration":"4 شهور","tasks":["اختبار المنصة في الرياض","تأهيل 50 مقاول","اكتساب 100 عميل"]},{"phase":"التوسع","duration":"8 شهور","tasks":["التوسع للمدن الكبرى","إضافة AI والتحليلات","زيادة الشراكات"]}],"first_steps":["دراسة السوق المحلي بتفصيل","الحصول على تراخيص REGA","بناء شراكات مع مقاولين كبار","تطوير نسخة عربية من المنصة"],"market_sizing":{"tam":"280 مليون ريال","sam":"140 مليون ريال","som":"14 مليون ريال"},"unit_economics":{"cac":"150 ريال","ltv":"2,400 ريال","ltv_cac_ratio":16.0,"gross_margin":"25%"},"revenue_model":{"type":"عمولة على الخدمات","pricing":"15-20% عمولة من قيمة الخدمة","arpu":"200 ريال شهرياً"},"financial_projections":{"year1":{"optimistic":"8 مليون ريال","expected":"5 مليون ريال","conservative":"3 مليون ريال"},"year2":{"optimistic":"25 مليون ريال","expected":"18 مليون ريال","conservative":"12 مليون ريال"},"year3":{"optimistic":"50 مليون ريال","expected":"35 مليون ريال","conservative":"25 مليون ريال"}},"budget_allocation":{"product_development":"35%","marketing_sales":"30%","operations":"20%","regulatory_legal":"10%","contingency":"5%"},"risk_analysis":[{"risk":"تنافس شديد من اللاعبين المحليين","probability":"عالي","impact":"متوسط","mitigation":"التمايز بالتقنية والخدمة"},{"risk":"صعوبة تأهيل مقاولين جودة","probability":"متوسط","impact":"عالي","mitigation":"شراكات مع شركات كبيرة"},{"risk":"تغيير اللوائح التنظيمية","probability":"منخفض","impact":"عالي","mitigation":"متابعة دائمة مع REGA"}],"exit_strategy":{"primary":"استحواذ من شركة عقارية كبرى","timeline":"5-7 سنوات","potential_acquirers":["دار الأركان","مجموعة سدكو","البنك العقاري"]},"data_confidence":"متوسط - بيانات واعدة لكن تحتاج دراسة محلية أعمق"},{"name":"Pacaso","score":42,"score_breakdown":{"market_size_growth":{"score":8,"max":20,"note":"سوق العقارات الفاخرة محدود ومقيد ثقافياً"},"vision_2030_alignment":{"score":6,"max":15,"note":"لا يتماشى مع أولويات الإسكان للسعوديين"},"market_gap":{"score":5,"max":20,"note":"مفهوم الملكية المشتركة غير مقبول ثقافياً"},"infrastructure_readiness":{"score":12,"max":15,"note":"البنية التحتية جاهزة تقنياً"},"execution_feasibility":{"score":6,"max":15,"note":"تحديات قانونية وثقافية كبيرة"},"datasaudi_support":{"score":5,"max":15,"note":"لا توجد مؤشرات تدعم هذا النوع من الاستثمار"}},"valuation":"1.5 مليار دولار","problem":"أسعار العقارات الفاخرة مرتفعة وصعوبة في إدارة منازل ثانية. الأثرياء يريدون منازل إجازات بدون تعقيدات الملكية الكاملة.","solution":"منصة ملكية مشتركة للعقارات الفاخرة تتيح شراء حصص في فلل فاخرة مع إدارة شاملة ونظام حجز ذكي.","saudi_opportunity":"رغم وجود طبقة أثرياء، المفهوم يتعارض مع تفضيلات الملكية التقليدية والثقافة المحلية","investment_range":"25-40 مليون ريال","time_to_market":"18-24 شهر","risk_level":"عالي جداً","risk_num":5,"roi_potential":"منخفض","roi_num":2,"competitors":["عقارات فاخرة تقليدية","منتجعات ملكية خاصة","فنادق فاخرة"],"regulations":["ترخيص REGA","قوانين الملكية المشتركة","تنظيم الاستثمار الأجنبي","ضوابط الإقامة القصيرة","قوانين الضرائب العقارية"],"studies":["دراسة قبول المفهوم ثقافياً","تحليل الطبقة الثرية السعودية","دراسة التنظيمات القانونية","تقييم مخاطر السوق"],"datasaudi_indicators":[{"indicator":"مؤشر العقار","value":"104.3 (+2%)","signal":"محايد","detail":"نمو عام لكن ليس في الفاخر"},{"indicator":"المنشآت النشطة","value":"2,045,964","signal":"فجوة","detail":"تركز على المنشآت الصغيرة"},{"indicator":"FDI صافي","value":"24.9 مليار ريال","signal":"إيجابي","detail":"انفتاح على استثمارات جديدة"}],"roadmap":[{"phase":"دراسة الجدوى المعمقة","duration":"8 شهور","tasks":["دراسة القبول الثقافي","تحليل التنظيمات","اختبار المفهوم"]},{"phase":"التطوير التجريبي","duration":"10 شهور","tasks":["تطوير منصة محلية","إيجاد عقارات مناسبة","بناء النموذج القانوني"]},{"phase":"الإطلاق المحدود","duration":"6 شهور","tasks":["اختبار مع 10 عقارات","تجربة 50 مستثمر","تحسين النموذج"]}],"first_steps":["دراسة عمقية للقبول الثقافي","استشارة قانونية متخصصة","اختبار المفهوم مع الأثرياء","تحديد العقارات المناسبة"],"market_sizing":{"tam":"5 مليارات ريال","sam":"500 مليون ريال","som":"25 مليون ريال"},"unit_economics":{"cac":"15,000 ريال","ltv":"45,000 ريال","ltv_cac_ratio":3.0,"gross_margin":"12%"},"revenue_model":{"type":"رسوم خدمة + إدارة شهرية","pricing":"12% من سعر الشراء + 3,000 ريال شهرياً","arpu":"5,000 ريال شهرياً"},"financial_projections":{"year1":{"optimistic":"8 مليون ريال","expected":"3 مليون ريال","conservative":"1 مليون ريال"},"year2":{"optimistic":"20 مليون ريال","expected":"12 مليون ريال","conservative":"5 مليون ريال"},"year3":{"optimistic":"35 مليون ريال","expected":"20 مليون ريال","conservative":"10 مليون ريال"}},"budget_allocation":{"product_development":"25%","marketing_sales":"35%","operations":"15%","regulatory_legal":"20%","contingency":"5%"},"risk_analysis":[{"risk":"رفض ثقافي للمفهوم","probability":"عالي","impact":"عالي","mitigation":"تعديل النموذج للثقافة المحلية"},{"risk":"تعقيدات قانونية في الملكية","probability":"عالي","impact":"عالي","mitigation":"استشارة قانونية مكثفة"},{"risk":"حجم السوق المحدود","probability":"متوسط","impact":"عالي","mitigation":"التوسع لأسواق أخرى"}],"exit_strategy":{"primary":"بيع الأصول وإغلاق","timeline":"3-5 سنوات","potential_acquirers":["مطورين عقاريين فاخرين","مجموعات فندقية"]},"data_confidence":"منخفض - المفهوم يواجه تحديات ثقافية وقانونية جوهرية"}],"micro_opportunities":[{"name":"استشارات الصيانة الوقائية","derived_from":"Lessen","category":"استشارات","startup_cost":"45,000 ريال","startup_cost_num":45000,"monthly_revenue_estimate":"15,000–25,000 ريال","monthly_costs_estimate":"8,000 ريال","break_even_months":3,"launch_speed":"سريع","launch_days":30,"problem":"أصحاب العقارات لا يعرفون متى وكيف يصونون عقاراتهم","solution":"خدمة استشارية للصيانة الوقائية مع جدولة ومتابعة","how_to_start":"1. الحصول على سجل تجاري 2. تطوير قوالب تقييم 3. بناء شبكة مقاولين","saudi_demand_proof":"3.3 مليون وحدة سكنية تحتاج صيانة دورية","risk_level":"منخفض","setup_path":"منشأة_خدمية","setup_costs_breakdown":{"سجل_تجاري":3000,"رخصة":5000,"أدوات_ومعدات":15000,"تسويق_أولي":10000,"أخرى":12000},"support_programs":[{"program":"منشآت","body":"هيئة المنشآت الصغيرة","benefit":"تمويل وإرشاد","eligibility":"سعودي مبتدئ"}],"local_example":"شركات الصيانة التقليدية موجودة لكن بدون تقنية","is_realistic":true,"realism_note":"فكرة واقعية جداً - يمكن البدء بخدمة استشارية ثم التطور لتطبيق"},{"name":"وساطة إيجار العقارات الفاخرة","derived_from":"Pacaso","category":"وساطة","startup_cost":"75,000 ريال","startup_cost_num":75000,"monthly_revenue_estimate":"20,000–40,000 ريال","monthly_costs_estimate":"12,000 ريال","break_even_months":4,"launch_speed":"متوسط","launch_days":60,"problem":"صعوبة في إيجاد وإدارة إيجار العقارات الفاخرة قصيرة المدى","solution":"خدمة وساطة متخصصة للعقارات الفاخرة مع إدارة شاملة","how_to_start":"1. ترخيص وساطة من REGA 2. بناء قاعدة عقارات 3. تطوير خدمات الإدارة","saudi_demand_proof":"نمو السياحة الداخلية وطلب على الإقامة الفاخرة","risk_level":"متوسط","setup_path":"منشأة_خدمية","setup_costs_breakdown":{"سجل_تجاري":3000,"رخصة":15000,"أدوات_ومعدات":25000,"تسويق_أولي":20000,"أخرى":12000},"support_programs":[{"program":"برنامج السياحة","body":"الهيئة السعودية للسياحة","benefit":"دعم التسويق","eligibility":"مرخص سياحي"}],"local_example":"شركات إدارة عقارية موجودة لكن ليست متخصصة بالفاخر","is_realistic":true,"realism_note":"أكثر واقعية من الملكية المشتركة - يمكن البدء بوساطة تقليدية"}]}]};
+
+// ══════════════════════════════════════════════
+// State
+// ══════════════════════════════════════════════
+const S = {
+  tab: 'sectors',
+  sector: null,
+  search: '',
+  risk: 'all',
+  microTab: 'list',
+  microPath: 'freelancer',
+  calc: { invest: 60000, revenue: 18000, costs: 9000 },
+  bookmarks: JSON.parse(localStorage.getItem('ycs_bm') || '[]'),
+  charts: {},
+};
+
+// ══════════════════════════════════════════════
+// Helpers
+// ══════════════════════════════════════════════
+const sectors = () => (D.sectors || []);
+const macro   = () => (D.datasaudi?.macro || {});
+const sctxMap = () => (D.datasaudi?.sector_context || {});
+
+function allOpps() {
+  const out = [];
+  for (const sec of sectors()) {
+    for (const o of (sec.opportunities || [])) {
+      out.push({ ...o, _sec: sec });
+    }
+  }
+  return out.sort((a, b) => (b.score || 0) - (a.score || 0));
+}
+
+function allMicro() {
+  const out = [];
+  for (const sec of sectors()) {
+    for (const m of (sec.micro_opportunities || [])) {
+      out.push({ ...m, _sec: sec });
+    }
+  }
+  return out.sort((a, b) => (a.startup_cost_num || 0) - (b.startup_cost_num || 0));
+}
+
+function filteredOpps(opps) {
+  return opps.filter(o => {
+    if (S.risk !== 'all') {
+      const map = { low: [1, 2], mid: [3], high: [4, 5] };
+      if (!(map[S.risk] || []).includes(o.risk_num || 3)) return false;
+    }
+    if (S.search) {
+      const q = S.search.toLowerCase();
+      const hay = `${o.name || ''} ${o.problem || ''} ${o.saudi_opportunity || ''} ${o._sec?.sector_name || ''}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function isBm(name) { return S.bookmarks.includes(name); }
+function toggleBm(name, e) {
+  e && e.stopPropagation();
+  const i = S.bookmarks.indexOf(name);
+  if (i === -1) S.bookmarks.push(name);
+  else S.bookmarks.splice(i, 1);
+  localStorage.setItem('ycs_bm', JSON.stringify(S.bookmarks));
+  render();
+}
+
+function riskBadge(level, num) {
+  if (!level) return '';
+  const cls = (num || 3) <= 2 ? 'bg' : (num || 3) === 3 ? 'by' : 'br';
+  return `<span class="badge ${cls}">${level}</span>`;
+}
+function roiBadge(level, num) {
+  if (!level) return '';
+  const cls = (num || 3) >= 4 ? 'bg' : (num || 3) === 3 ? 'bb' : 'bo';
+  return `<span class="badge ${cls}">${level}</span>`;
+}
+function signalBadge(s) {
+  const cls = s?.includes('إيجابي') ? 'bg' : s?.includes('محايد') ? 'bb' : 'by';
+  return `<span class="badge ${cls}">${s || ''}</span>`;
+}
+function fmtN(n) { return typeof n === 'number' ? n.toLocaleString('ar-SA') : (n || '—'); }
+
+// ══════════════════════════════════════════════
+// Score ring SVG
+// ══════════════════════════════════════════════
+function scoreRing(score, sz) {
+  sz = sz || 54;
+  const r = 15.9, circ = 2 * Math.PI * r;
+  const dash = Math.min((score / 100) * circ, circ);
+  const c = score >= 75 ? '#16a34a' : score >= 60 ? '#2563eb' : score >= 45 ? '#d97706' : '#dc2626';
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 36 36">
+    <circle cx="18" cy="18" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="3.2"/>
+    <circle cx="18" cy="18" r="${r}" fill="none" stroke="${c}" stroke-width="3.2"
+      stroke-dasharray="${dash.toFixed(1)} ${(circ - dash).toFixed(1)}"
+      stroke-linecap="round" transform="rotate(-90 18 18)"/>
+    <text x="18" y="21" text-anchor="middle" font-size="8" font-weight="bold"
+      fill="${c}" font-family="Tajawal,sans-serif">${score}</text>
+  </svg>`;
+}
+
+// ══════════════════════════════════════════════
+// Opportunity card
+// ══════════════════════════════════════════════
+function oppCard(o, showSector) {
+  showSector = showSector !== false;
+  const bm = isBm(o.name);
+  const rc = (o.risk_num || 3) <= 2 ? 'var(--success)' : (o.risk_num || 3) === 3 ? 'var(--warn)' : 'var(--danger)';
+  return `<div class="opp-card${bm ? ' bm' : ''}" onclick="openDetail(${JSON.stringify(JSON.stringify(o))})">
+    <div class="sr-wrap">${scoreRing(o.score || 0)}</div>
+    <div class="opp-body">
+      <div class="opp-name">${o.name || ''}</div>
+      <div class="opp-meta">${showSector ? (o._sec?.icon || '') + ' ' + (o._sec?.sector_name || '') + ' · ' : ''}${o.valuation || ''}</div>
+      <div class="opp-desc">${o.problem || ''}</div>
+      <div class="opp-footer">
+        ${riskBadge(o.risk_level, o.risk_num)}
+        ${roiBadge(o.roi_potential, o.roi_num)}
+        ${o.investment_range ? `<span class="badge bb">${o.investment_range}</span>` : ''}
+        ${o.time_to_market ? `<span class="badge bp">${o.time_to_market}</span>` : ''}
+      </div>
     </div>
-</div>
+    <button class="bm-btn${bm ? ' on' : ''}" onclick="toggleBm('${(o.name||'').replace(/'/g,"\\'")}', event)">${bm ? '🔖' : '☆'}</button>
+  </div>`;
+}
 
-<!-- المؤشرات الاقتصادية -->
-<div class="section">
-    <h2>📊 المؤشرات الاقتصادية — DataSaudi</h2>
-    <div class="grid">
-        <div class="macro-card"><div class="macro-label">الناتج المحلي</div><div class="macro-value">4.9 تريليون ريال</div></div>
-        <div class="macro-card"><div class="macro-label">PMI</div><div class="macro-value">56.1 (توسّع (فوق 50))</div></div>
-        <div class="macro-card"><div class="macro-label">التضخم</div><div class="macro-value">1.7%</div></div>
-        <div class="macro-card"><div class="macro-label">البطالة السعودية</div><div class="macro-value">7.5%</div></div>
-        <div class="macro-card"><div class="macro-label">ثقة الأعمال</div><div class="macro-value">60.7</div></div>
-        <div class="macro-card"><div class="macro-label">المنشآت النشطة</div><div class="macro-value">2,045,964</div></div>
-        <div class="macro-card"><div class="macro-label">FDI صافي</div><div class="macro-value">24.9 مليار ريال</div></div>
-        <div class="macro-card"><div class="macro-label">نقاط البيع</div><div class="macro-value">707 مليار ريال</div></div>
+// ══════════════════════════════════════════════
+// Micro card
+// ══════════════════════════════════════════════
+function microCard(m) {
+  return `<div class="micro-card" onclick="openMicroDetail(${JSON.stringify(JSON.stringify(m))})">
+    <div class="mc-name">${m._sec?.icon || ''} ${m.name || ''}</div>
+    <div class="mc-meta">مشتق من: ${m.derived_from || ''} · ${m.category || ''} · <span class="badge by">${m.launch_speed || ''}</span></div>
+    <div class="mc-stats">
+      <span><strong>التكلفة:</strong> ${m.startup_cost || ''}</span>
+      <span><strong>الإيراد:</strong> ${m.monthly_revenue_estimate || ''}/شهر</span>
+      <span><strong>التعادل:</strong> ${m.break_even_months || '?'} أشهر</span>
+      <span><strong>المخاطرة:</strong> ${m.risk_level || ''}</span>
     </div>
-</div>
+  </div>`;
+}
 
-<!-- أعلى 5 فرص -->
-<div class="section">
-    <h2>🏆 أعلى 5 فرص ملاءمة للسوق السعودي</h2>
-    <table>
-        <thead><tr><th>#</th><th>الفرصة</th><th>القطاع</th><th>الملاءمة</th><th>المخاطرة</th><th>الميزانية</th><th>الوقت</th></tr></thead>
-        <tbody>
-            <tr>
-                <td style="font-weight:800;color:#16A34A">1</td>
-                <td style="font-weight:700">Slope</td>
-                <td>💳 التقنية المالية</td>
-                <td style="font-weight:800;color:#2563EB">91</td>
-                <td><span class="badge badge-yellow">متوسط-عالي</span></td>
-                <td>30–60 مليون ريال</td>
-                <td>9–15 شهر</td>
-            </tr>
-            <tr>
-                <td style="font-weight:800;color:#16A34A">2</td>
-                <td style="font-weight:700">Ramp</td>
-                <td>💳 التقنية المالية</td>
-                <td style="font-weight:800;color:#2563EB">87</td>
-                <td><span class="badge badge-yellow">متوسط</span></td>
-                <td>50–100 مليون ريال</td>
-                <td>12–18 شهر</td>
-            </tr>
-            <tr>
-                <td style="font-weight:800;color:#16A34A">3</td>
-                <td style="font-weight:700">Mercury</td>
-                <td>💳 التقنية المالية</td>
-                <td style="font-weight:800;color:#2563EB">83</td>
-                <td><span class="badge badge-red">عالي</span></td>
-                <td>150–300 مليون ريال</td>
-                <td>18–24 شهر</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+// ══════════════════════════════════════════════
+// Render
+// ══════════════════════════════════════════════
+function render() {
+  const opps = allOpps();
+  const micro = allMicro();
+  const secs = sectors();
+  const topScore = opps[0]?.score || '—';
+  const bmCount = S.bookmarks.length;
+  const tabLabels = {
+    sectors:   '🏢 القطاعات',
+    economy:   '📊 الاقتصاد',
+    charts:    '📈 الرسوم البيانية',
+    matrix:    '🔢 مصفوفة المخاطر',
+    micro:     '⚡ الفرص المصغّرة',
+    bookmarks: '🔖 المحفوظة' + (bmCount ? ' (' + bmCount + ')' : ''),
+  };
+  const tabs = Object.keys(tabLabels);
 
-<!-- فرص تحت 100K -->
-<div class="section" style="background:#FFFBEB;border-right:4px solid #F59E0B">
-    <h2>⚡ فرص مصغّرة — ابدأ بأقل من 100,000 ريال</h2>
-    <div class="card micro">
-        <h3>💳 وساطة B2B للدفع بالتقسيط</h3>
-        <p><strong>مشتق من:</strong> Slope · <span class="badge badge-blue">سريع</span> <span class="badge badge-blue">خدمات</span></p>
-        <p><strong>المشكلة:</strong> الشركات الصغيرة تريد شراء بالتقسيط لكن الموردين لا يثقون بهم</p>
-        <p><strong>الحل:</strong> خدمة وساطة تربط الشركات بموردين يقبلون الدفع بالتقسيط مقابل عمولة</p>
-        <p><strong>التكلفة:</strong> 60,000 ريال · <strong>الإيراد المتوقع:</strong> 30,000–60,000 ريال شهرياً · <strong>نقطة التعادل:</strong> 2 أشهر</p>
-        <p><strong>دليل الطلب:</strong> نمو BNPL بـ 22.4% + 2 مليون منشآت = طلب على حلول B2B مرنة</p>
-        <p><strong>كيف تبدأ:</strong> 1. بناء شبكة موردين في قطاعات محددة 2. تطوير نظام تقييم بسيط 3. التوسع تدريجياً</p>
-        <p style="font-size:11px;color:#92400E"><strong>تقييم الواقعية:</strong> واقعية - نموذج وساطة أبسط من التمويل المباشر ولا يحتاج رخص مالية معقدة</p>
-    </div>
-    <div class="card micro">
-        <h3>💳 استشارات تطبيق Open Banking للشركات</h3>
-        <p><strong>مشتق من:</strong> Mercury · <span class="badge badge-blue">سريع</span> <span class="badge badge-blue">استشارات</span></p>
-        <p><strong>المشكلة:</strong> الشركات لا تعرف كيف تستفيد من Open Banking APIs للتكامل المالي</p>
-        <p><strong>الحل:</strong> خدمات استشارية متخصصة لمساعدة الشركات في التكامل مع APIs المالية</p>
-        <p><strong>التكلفة:</strong> 75,000 ريال · <strong>الإيراد المتوقع:</strong> 25,000–50,000 ريال شهرياً · <strong>نقطة التعادل:</strong> 3 أشهر</p>
-        <p><strong>دليل الطلب:</strong> 80% من المنشآت بدون خدمات إلكترونية + نمو Open Banking بـ 37%</p>
-        <p><strong>كيف تبدأ:</strong> 1. الحصول على شهادات SAMA Open Banking 2. بناء محفظة حالات نجاح 3. تسويق للشركات الناشئة</p>
-        <p style="font-size:11px;color:#92400E"><strong>تقييم الواقعية:</strong> واقعية جداً - خدمات استشارية لا تحتاج رؤوس أموال ضخمة والطلب متنامي</p>
-    </div>
-    <div class="card micro">
-        <h3>💳 تطبيق إدارة مصاريف للشركات الصغيرة</h3>
-        <p><strong>مشتق من:</strong> Ramp · <span class="badge badge-yellow">متوسط</span> <span class="badge badge-blue">تقنية</span></p>
-        <p><strong>المشكلة:</strong> الشركات الصغيرة تعاني من تتبع المصاريف يدوياً وتنظيم الفواتير</p>
-        <p><strong>الحل:</strong> تطبيق بسيط لرفع الفواتير، تصنيف المصاريف، وتقارير محاسبية تلقائية</p>
-        <p><strong>التكلفة:</strong> 95,000 ريال · <strong>الإيراد المتوقع:</strong> 15,000–35,000 ريال شهرياً · <strong>نقطة التعادل:</strong> 4 أشهر</p>
-        <p><strong>دليل الطلب:</strong> 2 مليون منشآت نشطة + 80% بدون رقمنة = حاجة واضحة للأتمتة</p>
-        <p><strong>كيف تبدأ:</strong> 1. تطوير MVP بسيط 2. استهداف المحاسبين كقناة توزيع 3. نموذج freemium</p>
-        <p style="font-size:11px;color:#92400E"><strong>تقييم الواقعية:</strong> صعب بـ 95K - منافسة من حلول عالمية رخيصة. الأفضل: خدمات إعداد وتدريب على الحلول الموجودة</p>
-    </div>
-</div>
+  document.getElementById('app').innerHTML =
+    '<div class="hdr"><div class="hdr-inner">' +
+      '<div class="logo">YC <span>Scout</span></div>' +
+      '<div class="hstats">' +
+        '<div class="hs"><div class="hs-n" style="color:#1e293b">' + secs.length + '</div><div class="hs-l">قطاعات</div></div>' +
+        '<div class="hs"><div class="hs-n" style="color:#2563eb">' + opps.length + '</div><div class="hs-l">فرص كبيرة</div></div>' +
+        '<div class="hs"><div class="hs-n" style="color:#f59e0b">' + micro.length + '</div><div class="hs-l">مصغّرة</div></div>' +
+        '<div class="hs"><div class="hs-n" style="color:#16a34a">' + topScore + '</div><div class="hs-l">أعلى ملاءمة</div></div>' +
+      '</div>' +
+      '<div class="scan-lbl">مسح: 2026-04-04</div>' +
+    '</div></div>' +
 
-<!-- تفاصيل القطاعات -->
-<div class="section">
-    <h2>📋 ملخص القطاعات</h2>
-    <div class="card" style="border-right-color:#64748B">
-        <h3>💳 التقنية المالية (FinTech)</h3>
-        <p><strong>حجم السوق:</strong> 147 مليار ريال · <strong>النمو:</strong> 13.7% · <strong>الإشارة:</strong> إيجابي قوي</p>
-        <p><strong>الاستراتيجية:</strong> استراتيجية تطوير القطاع المالي · <strong>الجهة:</strong> البنك المركزي السعودي (SAMA)</p>
-        <p><strong>الفرص الكبيرة:</strong> 3 · <strong>فرص تحت 100K:</strong> 3</p>
-    </div>
-</div>
+    '<div class="tabs-nav"><div class="tabs-inner">' +
+      tabs.map(t => '<button class="tab-btn' + (S.tab === t ? ' active' : '') + '" onclick="setTab(\'' + t + '\')">' + tabLabels[t] + '</button>').join('') +
+    '</div></div>' +
 
-<div class="footer">
-    YC Scout Agent v3.0 · DataSaudi.sa + 28 استراتيجية وطنية · 2026-04-03<br>
-    ⚠️ هذا التحليل استرشادي وليس توصية استثمارية مالية
-</div>
+    '<div class="main">' + renderTab(opps, micro, secs) + '</div>';
 
+  if (S.tab === 'charts') setTimeout(() => initCharts(opps, secs), 60);
+}
+
+function renderTab(opps, micro, secs) {
+  switch (S.tab) {
+    case 'sectors':   return renderSectors(opps, secs);
+    case 'economy':   return renderEconomy(secs);
+    case 'charts':    return renderCharts();
+    case 'matrix':    return renderMatrix(opps);
+    case 'micro':     return renderMicro(micro);
+    case 'bookmarks': return renderBookmarks(opps);
+    default: return '';
+  }
+}
+
+// ══════════════════════════════════════════════
+// Tab: القطاعات
+// ══════════════════════════════════════════════
+function renderSectors(opps, secs) {
+  const sidebar = '<div class="sec-sidebar">' +
+    '<div class="sidebar-hd">القطاعات</div>' +
+    '<div class="sec-pill' + (!S.sector ? ' active' : '') + '" onclick="setSector(null)">' +
+      '<span class="pill-icon">🗂</span> كل الفرص' +
+      '<span class="pc">' + opps.length + '</span>' +
+    '</div>' +
+    secs.map(s => {
+      const cnt = (s.opportunities || []).length;
+      return '<div class="sec-pill' + (S.sector === s.sector_id ? ' active' : '') + '" onclick="setSector(\'' + s.sector_id + '\')">' +
+        '<span class="pill-icon">' + (s.icon || '') + '</span>' +
+        '<span style="flex:1">' + (s.sector_name || s.sector_id) + '</span>' +
+        '<span class="pc">' + cnt + '</span>' +
+      '</div>';
+    }).join('') +
+  '</div>';
+
+  const toolbar = '<div class="toolbar">' +
+    '<input class="search-inp" type="text" placeholder="ابحث عن فرصة..." value="' + S.search + '" oninput="setSearch(this.value)">' +
+    '<button class="flt-btn' + (S.risk === 'all' ? ' fp' : '') + '" onclick="setRisk(\'all\')">الكل</button>' +
+    '<button class="flt-btn' + (S.risk === 'low' ? ' fa' : '') + '" onclick="setRisk(\'low\')">منخفض</button>' +
+    '<button class="flt-btn' + (S.risk === 'mid' ? ' fw' : '') + '" onclick="setRisk(\'mid\')">متوسط</button>' +
+    '<button class="flt-btn' + (S.risk === 'high' ? ' fd' : '') + '" onclick="setRisk(\'high\')">عالي</button>' +
+  '</div>';
+
+  let content;
+  if (S.sector) {
+    const sec = secs.find(s => s.sector_id === S.sector);
+    const secOpps = filteredOpps(opps.filter(o => o._sec?.sector_id === S.sector));
+    const mkt = sec?.market_assessment || {};
+    content = '<div>' +
+      '<div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">' +
+        '<button class="flt-btn fp" onclick="setSector(null)">← كل القطاعات</button>' +
+        '<span style="font-size:18px">' + (sec?.icon || '') + '</span>' +
+        '<span style="font-size:16px;font-weight:800">' + (sec?.sector_name || '') + '</span>' +
+        signalBadge(mkt.overall_signal) +
+      '</div>' +
+      (mkt.market_size ? '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">' +
+        '<span class="badge bb">حجم السوق: ' + mkt.market_size + '</span>' +
+        '<span class="badge bg">النمو: ' + (mkt.growth_rate || '') + '</span>' +
+        (mkt.regulatory_body ? '<span class="badge bp">' + mkt.regulatory_body + '</span>' : '') +
+        (mkt.sandbox ? '<span class="badge bo">' + mkt.sandbox + '</span>' : '') +
+      '</div>' : '') +
+      toolbar +
+      (secOpps.length ? secOpps.map(o => oppCard(o, false)).join('') : '<div class="empty"><div class="empty-icon">🔍</div>لا توجد نتائج</div>') +
+    '</div>';
+  } else {
+    const filtered = filteredOpps(opps);
+    if (S.search || S.risk !== 'all') {
+      content = toolbar + (filtered.length ? filtered.map(o => oppCard(o)).join('') : '<div class="empty"><div class="empty-icon">🔍</div>لا توجد نتائج</div>');
+    } else {
+      // Show sector cards grid
+      content = toolbar +
+        '<div class="sec-cards-grid">' +
+        secs.map(s => {
+          const cnt = (s.opportunities || []).length;
+          const mc = (s.micro_opportunities || []).length;
+          const mkt = s.market_assessment || {};
+          const sig = mkt.overall_signal || '';
+          const sigCls = sig.includes('إيجابي قوي') ? 'background:#dcfce7;color:#166534' :
+                         sig.includes('إيجابي') ? 'background:#dbeafe;color:#1e40af' :
+                         sig.includes('محايد') ? 'background:#f1f5f9;color:#475569' : 'background:#fee2e2;color:#991b1b';
+          return '<div class="sec-card" onclick="setSector(\'' + s.sector_id + '\')">' +
+            '<div class="sc-icon">' + (s.icon || '') + '</div>' +
+            '<div class="sc-name">' + (s.sector_name || '') + '</div>' +
+            '<div class="sc-en">' + (s.sector_name_en || '') + '</div>' +
+            '<div class="sc-stats">' +
+              '<div><div class="sc-sn" style="color:#2563eb">' + cnt + '</div><div class="sc-sl">فرص كبيرة</div></div>' +
+              '<div><div class="sc-sn" style="color:#f59e0b">' + mc + '</div><div class="sc-sl">مصغّرة</div></div>' +
+              (mkt.market_size ? '<div><div class="sc-sn" style="font-size:12px;color:#1e293b">' + mkt.market_size + '</div><div class="sc-sl">حجم السوق</div></div>' : '') +
+            '</div>' +
+            (sig ? '<div class="sc-signal" style="' + sigCls + '">' + sig + '</div>' : '') +
+          '</div>';
+        }).join('') +
+        '</div>';
+    }
+  }
+
+  return '<div class="sec-layout">' + sidebar + '<div>' + content + '</div></div>';
+}
+
+// ══════════════════════════════════════════════
+// Tab: الاقتصاد
+// ══════════════════════════════════════════════
+function renderEconomy(secs) {
+  const m = macro();
+  const ctx = sctxMap();
+  const macroItems = [
+    { l: 'الناتج المحلي', v: m.gdp?.value, m: 'نمو ' + (m.gdp?.growth || '') },
+    { l: 'غير النفطي', v: m.non_oil_gdp?.value, m: m.non_oil_gdp?.period || '' },
+    { l: 'PMI', v: (m.pmi?.value || '') + '', m: m.pmi?.status || '' },
+    { l: 'التضخم', v: m.inflation?.value, m: m.inflation?.period || '' },
+    { l: 'البطالة السعودية', v: m.unemployment_saudi?.value, m: m.unemployment_saudi?.period || '' },
+    { l: 'بطالة شابات', v: m.unemployment_youth_female?.value, m: m.unemployment_youth_female?.period || '' },
+    { l: 'مشاركة المرأة', v: m.female_participation?.value, m: m.female_participation?.period || '' },
+    { l: 'FDI صافي', v: m.fdi_net_inflow?.value, m: 'نمو ' + (m.fdi_net_inflow?.growth || '') },
+    { l: 'ثقة الأعمال', v: (m.business_confidence?.value || '') + '', m: m.business_confidence?.period || '' },
+    { l: 'المنشآت النشطة', v: m.active_enterprises?.value, m: m.active_enterprises?.period || '' },
+    { l: 'الاقتصاد الرقمي', v: m.digital_economy_gdp_share?.value, m: 'من GDP' },
+    { l: 'نقاط البيع', v: m.pos_sales?.value, m: 'نمو ' + (m.pos_sales?.growth || '') },
+    { l: 'ائتمان خاص', v: m.bank_credits_private?.value, m: m.bank_credits_private?.period || '' },
+    { l: 'مؤشر العقار', v: (m.real_estate_index?.value || '') + '', m: 'نمو ' + (m.real_estate_index?.growth || '') },
+    { l: 'R&D إنفاق', v: m.rnd_expenditure?.value, m: m.rnd_expenditure?.period || '' },
+    { l: 'موظفو GOSI', v: m.gosi_employees?.value, m: m.gosi_employees?.period || '' },
+    { l: 'متوسط الراتب', v: m.avg_wage?.value, m: m.avg_wage?.period || '' },
+    { l: 'صادرات السفر', v: m.travel_exports?.value, m: m.travel_exports?.period || '' },
+  ].filter(x => x.v);
+
+  const macroHtml = '<div class="mac-grid">' +
+    macroItems.map(it => '<div class="mac-c">' +
+      '<div class="mac-l">' + it.l + '</div>' +
+      '<div class="mac-v">' + it.v + '</div>' +
+      (it.m ? '<div class="mac-m">' + it.m + '</div>' : '') +
+    '</div>').join('') +
+  '</div>';
+
+  const ctxHtml = Object.entries(ctx).length ? (
+    '<div class="sec-divider">السياق القطاعي</div>' +
+    Object.entries(ctx).map(([id, text]) => {
+      const sec = secs.find(s => s.sector_id === id);
+      return '<div class="sec-ctx-card">' +
+        '<div class="scc-name">' + (sec?.icon || '') + ' ' + (sec?.sector_name || id) + '</div>' +
+        '<div class="scc-text">' + text + '</div>' +
+      '</div>';
+    }).join('')
+  ) : '';
+
+  const src = D.datasaudi?.source ? '<div style="font-size:11px;color:var(--faint);margin-top:16px;text-align:center">📎 المصدر: ' + D.datasaudi.source + ' · آخر تحديث: ' + (D.datasaudi.last_update || '') + '</div>' : '';
+
+  return macroHtml + ctxHtml + src;
+}
+
+// ══════════════════════════════════════════════
+// Tab: الرسوم البيانية
+// ══════════════════════════════════════════════
+function renderCharts() {
+  return '<div class="charts-grid">' +
+    '<div class="ch-card"><div class="ch-title">درجات الملاءمة — أعلى 10 فرص</div><canvas id="ch-scores" height="260"></canvas></div>' +
+    '<div class="ch-card"><div class="ch-title">توزيع مستويات المخاطرة</div><canvas id="ch-risk" height="260"></canvas></div>' +
+    '<div class="ch-card"><div class="ch-title">مقارنة القطاعات (فرص كبيرة)</div><canvas id="ch-sectors" height="260"></canvas></div>' +
+    '<div class="ch-card"><div class="ch-title">ROI مقابل المخاطرة</div><canvas id="ch-scatter" height="260"></canvas></div>' +
+  '</div>';
+}
+
+function initCharts(opps, secs) {
+  // Destroy previous
+  Object.values(S.charts).forEach(c => { try { c.destroy(); } catch (e) {} });
+  S.charts = {};
+
+  // 1. Top 10 scores bar
+  const top10 = opps.slice(0, 10);
+  const scoresEl = document.getElementById('ch-scores');
+  if (scoresEl) {
+    S.charts.scores = new Chart(scoresEl, {
+      type: 'bar',
+      data: {
+        labels: top10.map(o => (o.name || '').split(' ').slice(0, 3).join(' ')),
+        datasets: [{ label: 'الدرجة', data: top10.map(o => o.score || 0),
+          backgroundColor: top10.map(o => o.score >= 75 ? '#16a34a80' : o.score >= 60 ? '#2563eb80' : '#f59e0b80'),
+          borderColor: top10.map(o => o.score >= 75 ? '#16a34a' : o.score >= 60 ? '#2563eb' : '#f59e0b'),
+          borderWidth: 2, borderRadius: 6 }]
+      },
+      options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 100 } } }
+    });
+  }
+
+  // 2. Risk distribution pie
+  const riskCount = { 'منخفض': 0, 'متوسط': 0, 'عالي': 0 };
+  opps.forEach(o => {
+    const rn = o.risk_num || 3;
+    if (rn <= 2) riskCount['منخفض']++;
+    else if (rn === 3) riskCount['متوسط']++;
+    else riskCount['عالي']++;
+  });
+  const riskEl = document.getElementById('ch-risk');
+  if (riskEl) {
+    S.charts.risk = new Chart(riskEl, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(riskCount),
+        datasets: [{ data: Object.values(riskCount),
+          backgroundColor: ['#16a34a80', '#f59e0b80', '#dc262680'],
+          borderColor: ['#16a34a', '#f59e0b', '#dc2626'], borderWidth: 2 }]
+      },
+      options: { plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  // 3. Sector comparison bar
+  const secEl = document.getElementById('ch-sectors');
+  if (secEl) {
+    S.charts.sectors = new Chart(secEl, {
+      type: 'bar',
+      data: {
+        labels: secs.map(s => s.icon + ' ' + (s.sector_name || s.sector_id)),
+        datasets: [
+          { label: 'فرص كبيرة', data: secs.map(s => (s.opportunities || []).length), backgroundColor: '#2563eb80', borderColor: '#2563eb', borderWidth: 2, borderRadius: 4 },
+          { label: 'مصغّرة', data: secs.map(s => (s.micro_opportunities || []).length), backgroundColor: '#f59e0b80', borderColor: '#f59e0b', borderWidth: 2, borderRadius: 4 },
+        ]
+      },
+      options: { plugins: { legend: { position: 'bottom' } }, scales: { x: { stacked: false } } }
+    });
+  }
+
+  // 4. Risk vs ROI scatter
+  const scEl = document.getElementById('ch-scatter');
+  if (scEl) {
+    const colors = ['#2563eb', '#16a34a', '#f59e0b', '#dc2626', '#7c3aed', '#c2410c', '#0891b2', '#be185d', '#ca8a04', '#4f46e5'];
+    S.charts.scatter = new Chart(scEl, {
+      type: 'scatter',
+      data: {
+        datasets: secs.map((sec, i) => ({
+          label: sec.sector_name || sec.sector_id,
+          data: (sec.opportunities || []).map(o => ({ x: o.risk_num || 3, y: o.roi_num || 3, name: o.name })),
+          backgroundColor: colors[i % colors.length] + '90',
+          borderColor: colors[i % colors.length],
+          pointRadius: 7, pointHoverRadius: 9,
+        }))
+      },
+      options: {
+        plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: ctx => ctx.raw?.name || ctx.dataset.label } } },
+        scales: {
+          x: { min: 0.5, max: 5.5, title: { display: true, text: 'المخاطرة' }, ticks: { stepSize: 1 } },
+          y: { min: 0.5, max: 5.5, title: { display: true, text: 'العائد المتوقع' }, ticks: { stepSize: 1 } }
+        }
+      }
+    });
+  }
+}
+
+// ══════════════════════════════════════════════
+// Tab: مصفوفة المخاطر
+// ══════════════════════════════════════════════
+function renderMatrix(opps) {
+  // 5×5 grid: rows = ROI (5 top → 1 bottom), cols = risk (1 left → 5 right)
+  const cells = {};
+  for (let r = 1; r <= 5; r++) for (let c = 1; c <= 5; c++) cells[r + '-' + c] = [];
+  opps.forEach(o => {
+    const rk = Math.max(1, Math.min(5, o.risk_num || 3));
+    const ro = Math.max(1, Math.min(5, o.roi_num || 3));
+    cells[ro + '-' + rk].push(o);
+  });
+
+  const roiLabels = ['عالي جداً', 'مرتفع', 'متوسط', 'منخفض', 'ضعيف'];
+  const riskLabels = ['منخفض جداً', 'منخفض', 'متوسط', 'عالي', 'عالي جداً'];
+
+  const colLabels = '<div class="matrix-labels">' + riskLabels.map(l => '<div class="matrix-lbl">' + l + '</div>').join('') + '</div>';
+
+  const rows = [5, 4, 3, 2, 1].map((ro, ri) => {
+    const rowCells = [1, 2, 3, 4, 5].map(rk => {
+      const key = ro + '-' + rk;
+      const cls = 'mc-' + (4 - ri) + (rk - 1);
+      const chips = cells[key].map(o =>
+        '<div class="mat-chip" title="' + (o.name || '') + '" onclick="openDetail(' + JSON.stringify(JSON.stringify(o)) + ')">' +
+        (o._sec?.icon || '') + ' ' + (o.name || '').split(' ').slice(0, 2).join(' ') + '</div>'
+      ).join('');
+      return '<div class="matrix-cell ' + cls + '">' + chips + '</div>';
+    }).join('');
+    return '<div class="matrix-row">' +
+      '<div class="matrix-row-lbl">' + roiLabels[ri] + '</div>' +
+      rowCells +
+    '</div>';
+  }).join('');
+
+  const legend = '<div class="matrix-legend">' +
+    '<div class="ml-item"><div class="ml-box" style="background:#dcfce7"></div>منطقة خضراء (عائد عالٍ، مخاطرة منخفضة)</div>' +
+    '<div class="ml-item"><div class="ml-box" style="background:#fffbeb"></div>منطقة صفراء (توازن)</div>' +
+    '<div class="ml-item"><div class="ml-box" style="background:#fee2e2"></div>منطقة حمراء (مخاطرة عالية)</div>' +
+  '</div>';
+
+  return '<div class="matrix-wrap">' +
+    '<div class="matrix-title">مصفوفة المخاطر مقابل العائد — المحور الأفقي: المخاطرة · المحور الرأسي: العائد المتوقع</div>' +
+    colLabels + rows + legend +
+  '</div>';
+}
+
+// ══════════════════════════════════════════════
+// Tab: الفرص المصغّرة
+// ══════════════════════════════════════════════
+function renderMicro(micro) {
+  const subTabs = [
+    { id: 'list',    label: '📋 قائمة الفرص' },
+    { id: 'calc',    label: '🧮 حاسبة الجدوى' },
+    { id: 'paths',   label: '🛤 مسارات التأسيس' },
+    { id: 'support', label: '🏛 دعم حكومي' },
+  ];
+  const nav = '<div class="micro-sub-tabs">' +
+    subTabs.map(t => '<button class="mst-btn' + (S.microTab === t.id ? ' active' : '') + '" onclick="setMicroTab(\'' + t.id + '\')">' + t.label + '</button>').join('') +
+  '</div>';
+
+  let content = '';
+  switch (S.microTab) {
+    case 'list':
+      content = micro.length ? micro.map(m => microCard(m)).join('') :
+        '<div class="empty"><div class="empty-icon">⚡</div>لا توجد فرص مصغّرة في هذا المسح</div>';
+      break;
+
+    case 'calc':
+      content = renderCalc();
+      break;
+
+    case 'paths':
+      content = renderPaths(micro);
+      break;
+
+    case 'support':
+      content = renderSupport(micro);
+      break;
+  }
+
+  return nav + content;
+}
+
+function renderCalc() {
+  const { invest, revenue, costs } = S.calc;
+  const profit = revenue - costs;
+  const margin = revenue > 0 ? ((profit / revenue) * 100).toFixed(1) : 0;
+  const breakEven = costs > 0 && profit > 0 ? Math.ceil(invest / profit) : '∞';
+  const roi12 = invest > 0 ? (((profit * 12 - invest) / invest) * 100).toFixed(1) : 0;
+  const ltv = profit * 24;
+
+  return '<div class="calc-panel">' +
+    '<h3>🧮 حاسبة جدوى الفرصة المصغّرة</h3>' +
+    '<div class="calc-fields">' +
+      '<div class="cf"><label>رأس المال المبدئي (ريال)</label>' +
+      '<input type="range" min="5000" max="100000" step="1000" value="' + invest + '" oninput="updateCalc(\'invest\',this.value)">' +
+      '<div class="vd">' + fmtN(invest) + ' ريال</div></div>' +
+
+      '<div class="cf"><label>الإيراد الشهري المتوقع (ريال)</label>' +
+      '<input type="range" min="2000" max="80000" step="500" value="' + revenue + '" oninput="updateCalc(\'revenue\',this.value)">' +
+      '<div class="vd">' + fmtN(revenue) + ' ريال/شهر</div></div>' +
+
+      '<div class="cf"><label>التكاليف الشهرية (ريال)</label>' +
+      '<input type="range" min="1000" max="60000" step="500" value="' + costs + '" oninput="updateCalc(\'costs\',this.value)">' +
+      '<div class="vd">' + fmtN(costs) + ' ريال/شهر</div></div>' +
+    '</div>' +
+    '<div class="calc-res">' +
+      '<div class="cr-c"><div class="cr-n" style="color:' + (profit >= 0 ? 'var(--success)' : 'var(--danger)') + '">' + fmtN(profit) + '</div><div class="cr-l">الربح الشهري (ريال)</div></div>' +
+      '<div class="cr-c"><div class="cr-n">' + margin + '%</div><div class="cr-l">هامش الربح</div></div>' +
+      '<div class="cr-c"><div class="cr-n">' + breakEven + '</div><div class="cr-l">شهر للتعادل</div></div>' +
+      '<div class="cr-c"><div class="cr-n" style="color:' + (roi12 >= 0 ? 'var(--success)' : 'var(--danger)') + '">' + roi12 + '%</div><div class="cr-l">ROI السنة الأولى</div></div>' +
+      '<div class="cr-c"><div class="cr-n">' + fmtN(ltv) + '</div><div class="cr-l">القيمة التراكمية 24 شهر</div></div>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderPaths(micro) {
+  const paths = [
+    {
+      id: 'freelancer',
+      icon: '💻',
+      name: 'فريلانسر / عمل حر',
+      cost: 'من 5,000 ريال',
+      steps: [
+        'التسجيل في منصة مستقل أو Upwork',
+        'بناء ملف أعمال احترافي',
+        'التسعير التنافسي في البداية',
+        'تطوير العلاقات وطلب التوصيات',
+      ],
+      reqs: 'هوية وطنية، حساب مصرفي، مهارة محددة',
+      pros: 'تكاليف منخفضة، بدء فوري، مرونة',
+      cons: 'دخل غير ثابت، منافسة عالية',
+    },
+    {
+      id: 'ecommerce',
+      icon: '🛒',
+      name: 'تجارة إلكترونية',
+      cost: 'من 15,000 – 50,000 ريال',
+      steps: [
+        'تسجيل متجر في Zid أو Salla',
+        'تحديد المنتج والموردين',
+        'إعداد السجل التجاري الإلكتروني',
+        'تشغيل حملات تسويق رقمي',
+      ],
+      reqs: 'سجل تجاري إلكتروني، عقد مورد، رأس مال مبدئي للبضاعة',
+      pros: 'سوق واسع، قابلية للتوسع، بيانات مفيدة',
+      cons: 'منافسة شديدة، إدارة المخزون',
+    },
+    {
+      id: 'service',
+      icon: '🏢',
+      name: 'منشأة خدمية',
+      cost: 'من 20,000 – 80,000 ريال',
+      steps: [
+        'تسجيل في منصة بلدي (سجل تجاري)',
+        'الحصول على الترخيص المهني المناسب',
+        'استئجار مقر أو مكتب خدمات مشتركة',
+        'بناء فريق وشراكات محلية',
+      ],
+      reqs: 'سجل تجاري، رخصة بلدية، عنوان، هوية وطنية',
+      pros: 'مصداقية أعلى، عقود حكومية، نمو مستدام',
+      cons: 'تكاليف أعلى، إجراءات أكثر',
+    },
+  ];
+
+  const selected = paths.find(p => p.id === S.microPath) || paths[0];
+
+  const cards = '<div class="paths-grid">' +
+    paths.map(p => '<div class="path-card' + (S.microPath === p.id ? ' active' : '') + '" onclick="setMicroPath(\'' + p.id + '\')">' +
+      '<div class="pc-icon">' + p.icon + '</div>' +
+      '<div class="pc-name">' + p.name + '</div>' +
+      '<div class="pc-cost">' + p.cost + '</div>' +
+    '</div>').join('') +
+  '</div>';
+
+  const detail = '<div style="background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:20px">' +
+    '<div style="font-size:15px;font-weight:700;margin-bottom:14px">' + selected.icon + ' ' + selected.name + '</div>' +
+    '<div style="margin-bottom:12px"><strong style="font-size:12px;color:var(--muted)">خطوات التأسيس:</strong><ol style="margin-top:6px;padding-right:20px;font-size:13px;line-height:2">' +
+    selected.steps.map(s => '<li>' + s + '</li>').join('') + '</ol></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px">' +
+    '<div><strong>المتطلبات:</strong><br><span style="color:var(--muted)">' + selected.reqs + '</span></div>' +
+    '<div><strong>المزايا:</strong><br><span style="color:var(--success)">' + selected.pros + '</span></div>' +
+    '<div style="grid-column:1/-1"><strong>التحديات:</strong><br><span style="color:var(--warn)">' + selected.cons + '</span></div>' +
+    '</div>' +
+  '</div>';
+
+  // Micro examples for this path
+  const pathMicro = micro.filter(m => {
+    const sp = m.setup_path || '';
+    if (S.microPath === 'freelancer') return sp.includes('فريلانسر');
+    if (S.microPath === 'ecommerce') return sp.includes('إلكترونية') || sp.includes('تجارة');
+    if (S.microPath === 'service') return sp.includes('خدمية') || sp.includes('منشأة');
+    return true;
+  });
+
+  const examples = pathMicro.length > 0 ? '<div style="margin-top:16px"><div class="sec-divider">فرص مصغّرة مناسبة لهذا المسار</div>' + pathMicro.map(m => microCard(m)).join('') + '</div>' : '';
+
+  return cards + detail + examples;
+}
+
+function renderSupport(micro) {
+  // Collect all support programs from micro opportunities
+  const programs = [];
+  const seen = new Set();
+  micro.forEach(m => {
+    (m.support_programs || []).forEach(p => {
+      const key = p.program + p.body;
+      if (!seen.has(key)) {
+        seen.add(key);
+        programs.push({ ...p, _opp: m.name });
+      }
+    });
+  });
+
+  const staticPrograms = [
+    { program: 'منشآت', body: 'هيئة المنشآت الصغيرة والمتوسطة', benefit: 'استشارات مجانية، تدريب، تمويل', eligibility: 'منشآت صغيرة ومتوسطة' },
+    { program: 'برنامج كفالة', body: 'صندوق كفالة', benefit: 'ضمانات قروض بنكية تصل لـ 95%', eligibility: 'مواطن سعودي، نشاط تجاري' },
+    { program: 'برنامج ريادة', body: 'بنك التنمية الاجتماعية', benefit: 'قروض بلا فوائد حتى 300,000 ريال', eligibility: 'مواطن 18-60 سنة' },
+    { program: 'مسرّع Flat6Labs', body: 'Flat6Labs جدة/الرياض', benefit: 'استثمار + إرشاد + شبكة علاقات', eligibility: 'شركات ناشئة تقنية في مرحلة مبكرة' },
+    { program: 'منصة نطاقات', body: 'وزارة الموارد البشرية', benefit: 'تصنيف سعودة مميز', eligibility: 'المنشآت الملتزمة بنسب السعودة' },
+    { program: 'برنامج قدرات', body: 'مركز قدرات للاستشارات', benefit: 'دعم فني وتدريبي مجاني', eligibility: 'رواد الأعمال السعوديين' },
+  ];
+
+  const allPrograms = [...staticPrograms, ...programs.filter(p => !staticPrograms.find(sp => sp.program === p.program))];
+
+  return '<div style="background:var(--surface);border-radius:var(--r);border:1px solid var(--border);padding:20px;margin-bottom:18px">' +
+    '<div style="font-size:14px;font-weight:700;margin-bottom:14px">🏛 برامج الدعم الحكومي والشبه حكومي</div>' +
+    '<table class="sup-tbl">' +
+    '<thead><tr><th>البرنامج</th><th>الجهة</th><th>نوع الدعم</th><th>شرط الأهلية</th></tr></thead>' +
+    '<tbody>' +
+    allPrograms.map(p => '<tr>' +
+      '<td><strong>' + p.program + '</strong></td>' +
+      '<td>' + p.body + '</td>' +
+      '<td>' + p.benefit + '</td>' +
+      '<td>' + p.eligibility + '</td>' +
+    '</tr>').join('') +
+    '</tbody></table>' +
+  '</div>';
+}
+
+// ══════════════════════════════════════════════
+// Tab: المحفوظة
+// ══════════════════════════════════════════════
+function renderBookmarks(opps) {
+  if (!S.bookmarks.length) {
+    return '<div class="empty"><div class="empty-icon">🔖</div><div>لا توجد فرص محفوظة بعد</div><div style="font-size:12px;margin-top:8px">اضغط ☆ على أي فرصة لحفظها هنا</div></div>';
+  }
+  const bms = opps.filter(o => S.bookmarks.includes(o.name));
+  if (!bms.length) {
+    return '<div class="empty"><div class="empty-icon">🔖</div>الفرص المحفوظة غير موجودة في هذا المسح</div>';
+  }
+  return '<div>' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+      '<span style="font-size:14px;font-weight:700">' + bms.length + ' فرصة محفوظة</span>' +
+      '<button class="flt-btn" onclick="clearBookmarks()" style="color:var(--danger)">حذف الكل</button>' +
+    '</div>' +
+    bms.map(o => oppCard(o)).join('') +
+  '</div>';
+}
+
+// ══════════════════════════════════════════════
+// Detail panel
+// ══════════════════════════════════════════════
+function openDetail(oppJson) {
+  const opp = JSON.parse(oppJson);
+  document.getElementById('det-content').innerHTML = renderDetail(opp);
+  document.getElementById('det-ov').classList.add('open');
+  document.getElementById('det-panel').classList.add('open');
+}
+
+function openMicroDetail(mJson) {
+  const m = JSON.parse(mJson);
+  document.getElementById('det-content').innerHTML = renderMicroDetail(m);
+  document.getElementById('det-ov').classList.add('open');
+  document.getElementById('det-panel').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('det-ov').classList.remove('open');
+  document.getElementById('det-panel').classList.remove('open');
+}
+
+function renderDetail(o) {
+  const bm = isBm(o.name);
+  const sb = o.score_breakdown || {};
+  const sbKeys = {
+    market_size_growth: 'حجم السوق والنمو',
+    vision_2030_alignment: 'التوافق مع رؤية 2030',
+    market_gap: 'فجوة السوق',
+    infrastructure_readiness: 'جاهزية البنية التحتية',
+    execution_feasibility: 'قابلية التنفيذ',
+    datasaudi_support: 'دعم مؤشرات DataSaudi',
+  };
+
+  const fp = o.financial_projections || {};
+  const fpYears = Object.keys(fp);
+  const fpTable = fpYears.length ? (
+    '<table class="fp-tbl"><thead><tr><th>السنة</th><th>متفائل</th><th>متوقع</th><th>متحفظ</th></tr></thead><tbody>' +
+    fpYears.map(y => '<tr><td><strong>' + y + '</strong></td><td style="color:var(--success)">' + (fp[y]?.optimistic || '—') + '</td><td>' + (fp[y]?.expected || '—') + '</td><td style="color:var(--muted)">' + (fp[y]?.conservative || '—') + '</td></tr>').join('') +
+    '</tbody></table>'
+  ) : '';
+
+  const risks = (o.risk_analysis || []).map(r =>
+    '<div class="risk-row"><div class="rr-hdr">' +
+    '<span class="rr-name">' + (r.risk || '') + '</span>' +
+    '<span class="badge ' + (r.probability === 'عالي' ? 'br' : r.probability === 'متوسط' ? 'by' : 'bg') + '">' + (r.probability || '') + '</span>' +
+    '<span class="badge ' + (r.impact === 'عالي' ? 'br' : r.impact === 'متوسط' ? 'by' : 'bg') + '">' + (r.impact || '') + '</span>' +
+    '</div><div class="rr-mit">💡 ' + (r.mitigation || '') + '</div></div>'
+  ).join('');
+
+  const roadmap = (o.roadmap || []).map((ph, i) =>
+    '<div class="rm-phase">' +
+    '<div class="rm-dot">' + (i + 1) + '</div>' +
+    '<div class="rm-body">' +
+      '<div class="rm-name">' + (ph.phase || '') + '</div>' +
+      '<div class="rm-dur">' + (ph.duration || '') + '</div>' +
+      (ph.tasks || []).map(t => '<div class="rm-task">' + t + '</div>').join('') +
+    '</div></div>'
+  ).join('');
+
+  const inds = (o.datasaudi_indicators || []).map(ind =>
+    '<div class="ind-row">' +
+    '<span style="flex:1;font-weight:600">' + (ind.indicator || '') + '</span>' +
+    '<span style="color:var(--muted)">' + (ind.value || '') + '</span>' +
+    '<span class="' + (ind.signal === 'إيجابي' ? 'ind-pos' : ind.signal === 'فجوة' ? 'ind-gap' : 'ind-neg') + '">' + (ind.signal || '') + '</span>' +
+    '<span style="color:var(--muted);font-size:11px">' + (ind.detail || '') + '</span>' +
+    '</div>'
+  ).join('');
+
+  const exit = o.exit_strategy || {};
+  const budget = o.budget_allocation || {};
+
+  return '<div class="det-hdr">' +
+    '<div class="sr-wrap">' + scoreRing(o.score || 0, 52) + '</div>' +
+    '<div style="flex:1">' +
+      '<div style="font-size:15px;font-weight:800;margin-bottom:3px">' + (o.name || '') + '</div>' +
+      '<div style="font-size:12px;color:var(--muted)">' + (o._sec?.icon || '') + ' ' + (o._sec?.sector_name || '') + ' · ' + (o.valuation || '') + '</div>' +
+      '<div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap">' +
+        riskBadge(o.risk_level, o.risk_num) +
+        roiBadge(o.roi_potential, o.roi_num) +
+        (o.investment_range ? '<span class="badge bb">' + o.investment_range + '</span>' : '') +
+        (o.time_to_market ? '<span class="badge bp">' + o.time_to_market + '</span>' : '') +
+      '</div>' +
+    '</div>' +
+    '<button class="bm-btn' + (bm ? ' on' : '') + '" onclick="toggleBm(\'' + (o.name || '').replace(/'/g, "\\'") + '\', event)">' + (bm ? '🔖' : '☆') + '</button>' +
+    '<button class="det-close" onclick="closeDetail()">✕</button>' +
+  '</div>' +
+
+  '<div class="det-body">' +
+
+  // Problem / Solution
+  '<div class="det-sec">' +
+  '<div class="det-sec-title">المشكلة والحل</div>' +
+  '<div style="background:#fff7ed;border-radius:var(--rsm);padding:12px;margin-bottom:8px;font-size:13px;border:1px solid #fed7aa"><strong>المشكلة:</strong> ' + (o.problem || '—') + '</div>' +
+  '<div style="background:#f0fdf4;border-radius:var(--rsm);padding:12px;font-size:13px;border:1px solid #bbf7d0"><strong>الحل:</strong> ' + (o.solution || '—') + '</div>' +
+  '</div>' +
+
+  // Saudi opportunity
+  (o.saudi_opportunity ? '<div class="det-sec"><div class="det-sec-title">الفرصة في السوق السعودي</div>' +
+    '<div style="background:#eff6ff;border-radius:var(--rsm);padding:12px;font-size:13px;border:1px solid #bfdbfe">' + o.saudi_opportunity + '</div>' +
+  '</div>' : '') +
+
+  // Score breakdown
+  (Object.keys(sb).length ? '<div class="det-sec"><div class="det-sec-title">تفصيل الدرجة</div>' +
+    Object.entries(sb).map(([k, v]) => {
+      if (!v || typeof v !== 'object') return '';
+      const pct = v.max ? (v.score / v.max) * 100 : 0;
+      return '<div class="sbr"><span class="sbr-lbl">' + (sbKeys[k] || k) + '</span>' +
+        '<div class="sbr-bar"><div class="sbr-fill" style="width:' + pct + '%"></div></div>' +
+        '<span class="sbr-sc">' + v.score + '/' + v.max + '</span>' +
+        (v.note ? '<span style="font-size:10px;color:var(--faint);flex:1">' + v.note + '</span>' : '') +
+      '</div>';
+    }).join('') +
+  '</div>' : '') +
+
+  // TAM / SAM / SOM
+  (o.market_sizing ? '<div class="det-sec"><div class="det-sec-title">حجم السوق TAM / SAM / SOM</div>' +
+    '<div class="tsm">' +
+    '<div class="tsm-c"><div class="tsm-l">TAM — إجمالي السوق</div><div class="tsm-v">' + (o.market_sizing.tam || '—') + '</div></div>' +
+    '<div class="tsm-c"><div class="tsm-l">SAM — السوق المستهدف</div><div class="tsm-v">' + (o.market_sizing.sam || '—') + '</div></div>' +
+    '<div class="tsm-c"><div class="tsm-l">SOM — الحصة الواقعية</div><div class="tsm-v">' + (o.market_sizing.som || '—') + '</div></div>' +
+    '</div>' +
+  '</div>' : '') +
+
+  // Unit economics
+  (o.unit_economics ? '<div class="det-sec"><div class="det-sec-title">الاقتصاديات الوحدية</div>' +
+    '<div class="ue">' +
+    '<div class="ue-c"><div class="ue-l">CAC — تكلفة اكتساب العميل</div><div class="ue-v">' + (o.unit_economics.cac || '—') + '</div></div>' +
+    '<div class="ue-c"><div class="ue-l">LTV — قيمة العميل مدى الحياة</div><div class="ue-v">' + (o.unit_economics.ltv || '—') + '</div></div>' +
+    '<div class="ue-c"><div class="ue-l">LTV:CAC نسبة</div><div class="ue-v" style="color:' + ((o.unit_economics.ltv_cac_ratio || 0) >= 3 ? 'var(--success)' : 'var(--warn)') + '">' + (o.unit_economics.ltv_cac_ratio || '—') + 'x</div></div>' +
+    '<div class="ue-c"><div class="ue-l">هامش الربح الإجمالي</div><div class="ue-v">' + (o.unit_economics.gross_margin || '—') + '</div></div>' +
+    '</div>' +
+  '</div>' : '') +
+
+  // Financial projections
+  (fpYears.length ? '<div class="det-sec"><div class="det-sec-title">التوقعات المالية</div>' + fpTable + '</div>' : '') +
+
+  // DataSaudi indicators
+  (inds ? '<div class="det-sec"><div class="det-sec-title">مؤشرات DataSaudi الداعمة</div>' + inds + '</div>' : '') +
+
+  // Risk analysis
+  (risks ? '<div class="det-sec"><div class="det-sec-title">تحليل المخاطر</div>' + risks + '</div>' : '') +
+
+  // Exit strategy
+  (exit.primary ? '<div class="det-sec"><div class="det-sec-title">استراتيجية الخروج</div>' +
+    '<div style="background:var(--bg);border-radius:var(--rsm);padding:14px;border:1px solid var(--border)">' +
+    '<div style="font-size:13px;font-weight:700;margin-bottom:6px">' + exit.primary + '</div>' +
+    '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">الإطار الزمني: ' + (exit.timeline || '—') + '</div>' +
+    (exit.potential_acquirers?.length ? '<div style="font-size:12px"><strong>مستحوذون محتملون:</strong> ' + exit.potential_acquirers.join(' · ') + '</div>' : '') +
+    '</div>' +
+  '</div>' : '') +
+
+  // Budget allocation
+  (Object.keys(budget).length ? '<div class="det-sec"><div class="det-sec-title">توزيع الميزانية المقترح</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:8px">' +
+    Object.entries(budget).map(([k, v]) => '<span class="badge bb">' + k.replace(/_/g, ' ') + ': ' + v + '</span>').join('') +
+    '</div>' +
+  '</div>' : '') +
+
+  // Roadmap
+  (roadmap ? '<div class="det-sec"><div class="det-sec-title">خارطة الطريق</div>' + roadmap + '</div>' : '') +
+
+  // First steps
+  (o.first_steps?.length ? '<div class="det-sec"><div class="det-sec-title">الخطوات الأولى</div>' +
+    '<ol style="padding-right:20px;font-size:13px;line-height:2;color:var(--muted)">' +
+    o.first_steps.map(s => '<li>' + s + '</li>').join('') +
+    '</ol>' +
+  '</div>' : '') +
+
+  // Competitors
+  (o.competitors?.length ? '<div class="det-sec"><div class="det-sec-title">المنافسون المحليون</div>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:7px">' + o.competitors.map(c => '<span class="badge bo">' + c + '</span>').join('') + '</div>' +
+  '</div>' : '') +
+
+  // Regulations
+  (o.regulations?.length ? '<div class="det-sec"><div class="det-sec-title">المتطلبات التنظيمية</div>' +
+    '<ol style="padding-right:20px;font-size:12px;line-height:2;color:var(--muted)">' + o.regulations.map(r => '<li>' + r + '</li>').join('') + '</ol>' +
+  '</div>' : '') +
+
+  // Data confidence
+  (o.data_confidence ? '<div class="det-sec"><div style="font-size:11px;color:var(--faint);text-align:center;padding-top:4px">📊 مستوى الثقة في البيانات: ' + o.data_confidence + '</div></div>' : '') +
+
+  '</div>';
+}
+
+function renderMicroDetail(m) {
+  const costs = m.setup_costs_breakdown || {};
+
+  return '<div class="det-hdr">' +
+    '<div style="font-size:28px">' + (m._sec?.icon || '⚡') + '</div>' +
+    '<div style="flex:1">' +
+      '<div style="font-size:15px;font-weight:800;margin-bottom:3px">' + (m.name || '') + '</div>' +
+      '<div style="font-size:12px;color:var(--muted)">مشتق من: ' + (m.derived_from || '') + ' · ' + (m.category || '') + '</div>' +
+      '<div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap">' +
+        '<span class="badge by">' + (m.launch_speed || '') + '</span>' +
+        '<span class="badge bo">' + (m.startup_cost || '') + '</span>' +
+        '<span class="badge ' + (m.risk_level === 'منخفض' ? 'bg' : m.risk_level?.includes('متوسط') ? 'by' : 'br') + '">' + (m.risk_level || '') + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<button class="det-close" onclick="closeDetail()">✕</button>' +
+  '</div>' +
+
+  '<div class="det-body">' +
+
+  '<div class="det-sec"><div class="det-sec-title">المشكلة والحل</div>' +
+  '<div style="background:#fff7ed;border-radius:var(--rsm);padding:11px;margin-bottom:8px;font-size:13px;border:1px solid #fed7aa"><strong>المشكلة:</strong> ' + (m.problem || '—') + '</div>' +
+  '<div style="background:#f0fdf4;border-radius:var(--rsm);padding:11px;font-size:13px;border:1px solid #bbf7d0"><strong>الحل:</strong> ' + (m.solution || '—') + '</div>' +
+  '</div>' +
+
+  '<div class="det-sec"><div class="det-sec-title">الأرقام المالية</div>' +
+  '<div class="ue">' +
+  '<div class="ue-c"><div class="ue-l">التكلفة المبدئية</div><div class="ue-v" style="color:var(--primary)">' + (m.startup_cost || '—') + '</div></div>' +
+  '<div class="ue-c"><div class="ue-l">الإيراد الشهري المتوقع</div><div class="ue-v" style="color:var(--success)">' + (m.monthly_revenue_estimate || '—') + '</div></div>' +
+  '<div class="ue-c"><div class="ue-l">التكاليف الشهرية</div><div class="ue-v">' + (m.monthly_costs_estimate || '—') + '</div></div>' +
+  '<div class="ue-c"><div class="ue-l">نقطة التعادل</div><div class="ue-v">' + (m.break_even_months || '?') + ' أشهر</div></div>' +
+  '</div>' +
+  '</div>' +
+
+  (Object.keys(costs).length ? '<div class="det-sec"><div class="det-sec-title">تفصيل تكاليف التأسيس</div>' +
+    '<div style="display:flex;flex-direction:column;gap:6px">' +
+    Object.entries(costs).map(([k, v]) => {
+      const total = Object.values(costs).reduce((a, b) => a + (b || 0), 0);
+      const pct = total > 0 ? ((v / total) * 100).toFixed(0) : 0;
+      return '<div class="sbr"><span class="sbr-lbl">' + k.replace(/_/g, ' ') + '</span>' +
+        '<div class="sbr-bar"><div class="sbr-fill" style="width:' + pct + '%;background:var(--micro)"></div></div>' +
+        '<span class="sbr-sc" style="color:var(--micro)">' + fmtN(v) + ' ر</span>' +
+      '</div>';
+    }).join('') +
+    '</div>' +
+  '</div>' : '') +
+
+  (m.how_to_start ? '<div class="det-sec"><div class="det-sec-title">كيف تبدأ بالضبط</div>' +
+    '<div style="background:#eff6ff;border-radius:var(--rsm);padding:14px;font-size:13px;line-height:2;border:1px solid #bfdbfe">' + m.how_to_start + '</div>' +
+  '</div>' : '') +
+
+  (m.saudi_demand_proof ? '<div class="det-sec"><div class="det-sec-title">دليل الطلب من DataSaudi</div>' +
+    '<div style="background:#f0fdf4;border-radius:var(--rsm);padding:12px;font-size:13px;border:1px solid #bbf7d0">' + m.saudi_demand_proof + '</div>' +
+  '</div>' : '') +
+
+  ((m.support_programs || []).length ? '<div class="det-sec"><div class="det-sec-title">برامج الدعم</div>' +
+    '<table class="sup-tbl"><thead><tr><th>البرنامج</th><th>الجهة</th><th>الدعم</th><th>الأهلية</th></tr></thead><tbody>' +
+    (m.support_programs || []).map(p => '<tr><td><strong>' + p.program + '</strong></td><td>' + p.body + '</td><td>' + p.benefit + '</td><td>' + p.eligibility + '</td></tr>').join('') +
+    '</tbody></table>' +
+  '</div>' : '') +
+
+  (m.local_example ? '<div class="det-sec"><div class="det-sec-title">مثال محلي</div>' +
+    '<div style="font-size:13px;color:var(--muted);background:var(--bg);border-radius:var(--rsm);padding:11px;border:1px solid var(--border)">💡 ' + m.local_example + '</div>' +
+  '</div>' : '') +
+
+  (m.realism_note ? '<div class="det-sec">' +
+    '<div style="font-size:12px;color:' + (m.is_realistic ? 'var(--success)' : 'var(--warn)') + ';background:var(--bg);border-radius:var(--rsm);padding:11px;border:1px solid var(--border)">' +
+    (m.is_realistic ? '✅' : '⚠️') + ' <strong>تقييم الواقعية:</strong> ' + m.realism_note + '</div>' +
+  '</div>' : '') +
+
+  '</div>';
+}
+
+// ══════════════════════════════════════════════
+// State mutators
+// ══════════════════════════════════════════════
+function setTab(t)        { S.tab = t; S.sector = null; render(); }
+function setSector(id)    { S.sector = id; render(); }
+function setSearch(q)     { S.search = q; render(); }
+function setRisk(f)       { S.risk = f; render(); }
+function setMicroTab(t)   { S.microTab = t; render(); }
+function setMicroPath(p)  { S.microPath = p; render(); }
+function updateCalc(k, v) { S.calc[k] = parseInt(v, 10); render(); }
+function clearBookmarks()  { S.bookmarks = []; localStorage.removeItem('ycs_bm'); render(); }
+
+// ══════════════════════════════════════════════
+// Boot
+// ══════════════════════════════════════════════
+render();
+</script>
 </body>
 </html>
