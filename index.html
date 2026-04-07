@@ -305,7 +305,7 @@ function allMicro() {
       out.push({ ...m, _sec: sec });
     }
   }
-  return out.sort((a, b) => (a.startup_cost_num || 0) - (b.startup_cost_num || 0));
+  return out.sort((a, b) => (a.initial_cost || 0) - (b.initial_cost || 0));
 }
 
 function filteredOpps(opps) {
@@ -327,7 +327,7 @@ function filteredOpps(opps) {
     // البحث النصي
     if (S.search) {
       const q = S.search.toLowerCase();
-      const hay = `${o.name || ''} ${o.problem || ''} ${o.saudi_opportunity || ''} ${o._sec?.sector_name || ''}`.toLowerCase();
+      const hay = `${o.name || ''} ${o.name_ar || ''} ${o.description_ar || ''} ${o.description || ''} ${o._sec?.sector_name || ''}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -404,9 +404,14 @@ function _parseRevStr(s) {
 }
 function getRoiNum(o) {
   const fp = o.financial_projections || {};
-  const y3 = _parseRevStr(fp.year3?.expected);
-  const y1 = _parseRevStr(fp.year1?.expected);
-  if (y1 > 0) { const roi = ((y3 - y1) / y1) * 100; return roi > 100 ? 5 : roi >= 30 ? 3 : 1; }
+  const y3rev  = fp.year3?.expected?.revenue  || fp.year3?.revenue  || 0;
+  const y3cost = fp.year3?.expected?.costs     || fp.year3?.costs    || 0;
+  const y1cost = fp.year1?.expected?.costs     || fp.year1?.costs    || 0;
+  if (y1cost > 0) {
+    const profit = y3rev - y3cost;
+    const roi = (profit / y1cost) * 100;
+    return roi > 100 ? 5 : roi >= 30 ? 3 : 1;
+  }
   return 3;
 }
 function getRoiPotential(o) {
@@ -489,8 +494,8 @@ function oppCard(o, showSector) {
         '<span class="badge bb" style="font-size:10px">رئيسية</span>' +  // التعديل 9
         (sh ? '<span class="badge bg" style="font-size:10px">💼 بجانب وظيفتك ✓</span>' : '') +  // التعديل 8
       '</div>' +
-      '<div class="opp-meta">' + (showSector ? (o._sec?.icon || '') + ' ' + (o._sec?.sector_name || '') + ' · ' : '') + (o.valuation || '') + '</div>' +
-      '<div class="opp-desc">' + (o.problem || '') + '</div>' +
+      '<div class="opp-meta">' + (showSector ? (o._sec?.icon || '') + ' ' + (o._sec?.sector_name || '') : '') + '</div>' +
+      '<div class="opp-desc">' + (o.description_ar || o.description || '') + '</div>' +
       // شريط توافق المؤسس (التعديل 7)
       (ff ? '<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:2px"><span>توافق المؤسس</span><span style="font-weight:700;color:' + ffColor + '">' + ff + '%</span></div><div style="height:4px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + ff + '%;background:' + ffColor + ';border-radius:3px"></div></div></div>' : '') +
       '<div class="opp-footer">' +
@@ -521,11 +526,11 @@ function microCard(m) {
       (sh ? '<span class="badge bg" style="font-size:10px">💼 بجانب وظيفتك ✓</span>' : '') +   // التعديل 8
       (roi12 > 0 ? '<span class="badge bg" style="font-size:10px">ROI ' + roi12 + '%</span>' : '') +  // التعديل 10
     '</div>' +
-    '<div class="mc-meta">مشتق من: ' + (m.derived_from || '') + ' · ' + (m.category || '') + ' · <span class="badge by">' + (m.launch_speed || '') + '</span></div>' +
+    '<div class="mc-meta">' + (m.yc_inspiration ? 'مستوحى من: ' + m.yc_inspiration + ' · ' : '') + (m._sec?.sector_name || '') + (m.months_to_revenue ? ' · <span class="badge by">' + m.months_to_revenue + ' أشهر للإيراد</span>' : '') + '</div>' +
     '<div class="mc-stats">' +
-      '<span><strong>التكلفة:</strong> ' + (m.startup_cost || '') + '</span>' +
+      '<span><strong>التكلفة:</strong> ' + (m.initial_cost ? fmtN(m.initial_cost) + ' ر' : '—') + '</span>' +
       '<span><strong>الإيراد:</strong> ' + (m.monthly_revenue ? m.monthly_revenue.toLocaleString('ar-SA') + ' ر' : '—') + '/شهر</span>' +
-      '<span><strong>التعادل:</strong> ' + (m.break_even_months || '?') + ' أشهر</span>' +
+      '<span><strong>التعادل:</strong> ' + ((() => { const net = (m.monthly_revenue || 0) - (m.monthly_costs || 0); return net > 0 ? Math.ceil((m.initial_cost || 0) / net) + ' أشهر' : '?'; })()) + '</span>' +
       '<span><strong>المخاطرة:</strong> ' + getMicroRiskLevel(m) + '</span>' +
     '</div>' +
   '</div>';
@@ -1558,16 +1563,16 @@ function renderDetail(o) {
 }
 
 function renderMicroDetail(m) {
-  const costs = m.setup_costs_breakdown || {};
+  const costs = {};  // setup_costs_breakdown غير موجود في JSON الجديد
 
   return '<div class="det-hdr">' +
     '<div style="font-size:28px">' + (m._sec?.icon || '⚡') + '</div>' +
     '<div style="flex:1">' +
       '<div style="font-size:15px;font-weight:800;margin-bottom:3px">' + (m.name || '') + '</div>' +
-      '<div style="font-size:12px;color:var(--muted)">مشتق من: ' + (m.derived_from || '') + ' · ' + (m.category || '') + '</div>' +
+      '<div style="font-size:12px;color:var(--muted)">' + (m.yc_inspiration ? 'مستوحى من: ' + m.yc_inspiration + ' · ' : '') + (m._sec?.sector_name || '') + '</div>' +
       '<div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap">' +
-        '<span class="badge by">' + (m.launch_speed || '') + '</span>' +
-        '<span class="badge bo">' + (m.startup_cost || '') + '</span>' +
+        (m.months_to_revenue ? '<span class="badge by">' + m.months_to_revenue + ' أشهر للإيراد</span>' : '') +
+        '<span class="badge bo">' + (m.initial_cost != null ? fmtN(m.initial_cost) + ' ريال' : '—') + '</span>' +
         ((() => { const rl = getMicroRiskLevel(m); return '<span class="badge ' + (rl === 'منخفض' ? 'bg' : rl === 'متوسط' ? 'by' : 'br') + '">' + rl + '</span>'; })()) +
       '</div>' +
     '</div>' +
@@ -1576,17 +1581,16 @@ function renderMicroDetail(m) {
 
   '<div class="det-body">' +
 
-  '<div class="det-sec"><div class="det-sec-title">المشكلة والحل</div>' +
-  '<div style="background:#fff7ed;border-radius:var(--rsm);padding:11px;margin-bottom:8px;font-size:13px;border:1px solid #fed7aa"><strong>المشكلة:</strong> ' + (m.problem || '—') + '</div>' +
-  '<div style="background:#f0fdf4;border-radius:var(--rsm);padding:11px;font-size:13px;border:1px solid #bbf7d0"><strong>الحل:</strong> ' + (m.solution || '—') + '</div>' +
+  '<div class="det-sec"><div class="det-sec-title">وصف الفرصة</div>' +
+  '<div style="background:#eff6ff;border-radius:var(--rsm);padding:11px;font-size:13px;border:1px solid #bfdbfe">' + (m.description_ar || '—') + '</div>' +
   '</div>' +
 
   '<div class="det-sec"><div class="det-sec-title">الأرقام المالية</div>' +
   '<div class="ue">' +
-  '<div class="ue-c"><div class="ue-l">التكلفة المبدئية</div><div class="ue-v" style="color:var(--primary)">' + (m.startup_cost || '—') + '</div></div>' +
+  '<div class="ue-c"><div class="ue-l">التكلفة المبدئية</div><div class="ue-v" style="color:var(--primary)">' + (m.initial_cost != null ? fmtN(m.initial_cost) + ' ر' : '—') + '</div></div>' +
   '<div class="ue-c"><div class="ue-l">الإيراد الشهري المتوقع</div><div class="ue-v" style="color:var(--success)">' + (m.monthly_revenue ? m.monthly_revenue.toLocaleString('ar-SA') + ' ر' : '—') + '</div></div>' +
   '<div class="ue-c"><div class="ue-l">التكاليف الشهرية</div><div class="ue-v">' + (m.monthly_costs ? m.monthly_costs.toLocaleString('ar-SA') + ' ر' : '—') + '</div></div>' +
-  '<div class="ue-c"><div class="ue-l">نقطة التعادل</div><div class="ue-v">' + (m.break_even_months || '?') + ' أشهر</div></div>' +
+  '<div class="ue-c"><div class="ue-l">نقطة التعادل</div><div class="ue-v">' + ((() => { const net = (m.monthly_revenue || 0) - (m.monthly_costs || 0); return net > 0 ? Math.ceil((m.initial_cost || 0) / net) + ' أشهر' : '?'; })()) + '</div></div>' +
   '</div>' +
   '</div>' +
 
@@ -1603,28 +1607,30 @@ function renderMicroDetail(m) {
     '</div>' +
   '</div>' : '') +
 
-  (m.how_to_start ? '<div class="det-sec"><div class="det-sec-title">كيف تبدأ بالضبط</div>' +
-    '<div style="background:#eff6ff;border-radius:var(--rsm);padding:14px;font-size:13px;line-height:2;border:1px solid #bfdbfe">' + m.how_to_start + '</div>' +
-  '</div>' : '') +
+  ((m.steps && m.steps.length) ? '<div class="det-sec"><div class="det-sec-title">خطوات البدء</div>' +
+    '<ol style="padding-right:22px;font-size:13px;line-height:2.2">' +
+    m.steps.map(s => {
+      const txt = typeof s === 'string' ? s : (s.step || JSON.stringify(s));
+      const cost = typeof s === 'object' && s.cost > 0 ? ' <span style="color:var(--warn);font-weight:600">(' + fmtN(s.cost) + ' ر)</span>' : (typeof s === 'object' && s.cost === 0 ? ' <span style="color:var(--success)">مجاني</span>' : '');
+      const src  = typeof s === 'object' && s.source ? ' <span style="font-size:10px;color:var(--faint)">' + s.source + '</span>' : '';
+      return '<li>' + txt + cost + src + '</li>';
+    }).join('') +
+    '</ol></div>' : '') +
 
   (m.saudi_demand_proof ? '<div class="det-sec"><div class="det-sec-title">دليل الطلب من DataSaudi</div>' +
     '<div style="background:#f0fdf4;border-radius:var(--rsm);padding:12px;font-size:13px;border:1px solid #bbf7d0">' + m.saudi_demand_proof + '</div>' +
   '</div>' : '') +
 
-  ((m.support_programs || []).length ? '<div class="det-sec"><div class="det-sec-title">برامج الدعم</div>' +
-    '<table class="sup-tbl"><thead><tr><th>البرنامج</th><th>الجهة</th><th>الدعم</th><th>الأهلية</th></tr></thead><tbody>' +
-    (m.support_programs || []).map(p => '<tr><td><strong>' + p.program + '</strong></td><td>' + p.body + '</td><td>' + p.benefit + '</td><td>' + p.eligibility + '</td></tr>').join('') +
-    '</tbody></table>' +
+  ((m.gov_support || []).length ? '<div class="det-sec"><div class="det-sec-title">الدعم الحكومي</div>' +
+    '<ul style="padding-right:20px;font-size:13px;line-height:2.2;color:var(--muted)">' +
+    (m.gov_support || []).map(g => '<li>' + g + '</li>').join('') +
+    '</ul>' +
   '</div>' : '') +
 
   (m.local_example ? '<div class="det-sec"><div class="det-sec-title">مثال محلي</div>' +
     '<div style="font-size:13px;color:var(--muted);background:var(--bg);border-radius:var(--rsm);padding:11px;border:1px solid var(--border)">💡 ' + m.local_example + '</div>' +
   '</div>' : '') +
 
-  (m.realism_note ? '<div class="det-sec">' +
-    '<div style="font-size:12px;color:' + (m.is_realistic ? 'var(--success)' : 'var(--warn)') + ';background:var(--bg);border-radius:var(--rsm);padding:11px;border:1px solid var(--border)">' +
-    (m.is_realistic ? '✅' : '⚠️') + ' <strong>تقييم الواقعية:</strong> ' + m.realism_note + '</div>' +
-  '</div>' : '') +
 
   // ━━ التعديل 19: مسارات التأسيس للفرص المصغّرة ━━
   (() => {
