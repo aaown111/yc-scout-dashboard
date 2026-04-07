@@ -313,7 +313,7 @@ function filteredOpps(opps) {
     // فلتر المخاطرة
     if (S.risk !== 'all') {
       const map = { low: [1, 2], mid: [3], high: [4, 5] };
-      if (!(map[S.risk] || []).includes(o.risk_num || 3)) return false;
+      if (!(map[S.risk] || []).includes(getRiskNum(o))) return false;
     }
     // فلتر GO/مشروط/NO-GO (التعديل 2)
     if (S.verdict !== 'all') {
@@ -334,7 +334,7 @@ function filteredOpps(opps) {
   });
   // الترتيب الديناميكي (التعديل 4)
   if (S.sortBy === 'founder_fit') out = out.sort((a, b) => (b.engine?.founder_fit?.score || 0) - (a.engine?.founder_fit?.score || 0));
-  else if (S.sortBy === 'roi')    out = out.sort((a, b) => (b.roi_num || 0) - (a.roi_num || 0));
+  else if (S.sortBy === 'roi')    out = out.sort((a, b) => getRoiNum(b) - getRoiNum(a));
   else                            out = out.sort((a, b) => getScore(b) - getScore(a));
   return out;
 }
@@ -375,6 +375,49 @@ function verdictBadge(v) {
   if (!v) return '';
   const cls = v === 'GO' ? 'bg' : v === 'مشروط' ? 'by' : 'br';
   return '<span class="badge ' + cls + '">' + v + '</span>';
+}
+
+// ── Risk / ROI computed helpers (these fields don't exist directly in JSON) ──
+function getRiskNum(o) {
+  const cr = o.engine?.quantified_risks?.composite_risk;
+  if (cr != null) return cr > 0.5 ? 5 : cr >= 0.25 ? 3 : 1;
+  const highCount = (o.risk_analysis || []).filter(r => r.probability === 'عالي').length;
+  return highCount >= 3 ? 5 : highCount >= 1 ? 3 : 1;
+}
+function getRiskLevel(o) {
+  const rn = getRiskNum(o);
+  return rn >= 5 ? 'عالي' : rn >= 3 ? 'متوسط' : 'منخفض';
+}
+function getMicroRiskLevel(m) {
+  const cc = m.competitor_count || 0;
+  return cc > 5 ? 'عالي' : cc >= 3 ? 'متوسط' : 'منخفض';
+}
+function getMicroRiskNum(m) {
+  const cc = m.competitor_count || 0;
+  return cc > 5 ? 5 : cc >= 3 ? 3 : 1;
+}
+function _parseRevStr(s) {
+  if (!s) return 0;
+  const m = String(s).match(/([\d,.]+)/);
+  const n = m ? parseFloat(m[1].replace(/,/g, '')) : 0;
+  return String(s).includes('مليار') ? n * 1000 : n;
+}
+function getRoiNum(o) {
+  const fp = o.financial_projections || {};
+  const y3 = _parseRevStr(fp.year3?.expected);
+  const y1 = _parseRevStr(fp.year1?.expected);
+  if (y1 > 0) { const roi = ((y3 - y1) / y1) * 100; return roi > 100 ? 5 : roi >= 30 ? 3 : 1; }
+  return 3;
+}
+function getRoiPotential(o) {
+  const rn = getRoiNum(o); return rn >= 5 ? 'عالي' : rn >= 3 ? 'متوسط' : 'منخفض';
+}
+function calcMicroRoi12(m) {
+  const mr = m.monthly_revenue || 0;
+  const mc = m.monthly_costs || 0;
+  const ic = m.initial_cost || 0;
+  const denom = ic + mc * 12;
+  return denom > 0 ? Math.round(((mr - mc) * 12 - ic) / denom * 100) : 0;
 }
 
 // ── Summary cards (التعديل 1) ──
@@ -425,6 +468,10 @@ function oppCard(o, showSector) {
   const verdict = getVerdict(o);                              // التعديل 6
   const ff = o.engine?.founder_fit?.score || 0;              // التعديل 7
   const sh = o.engine?.side_hustle?.feasible;                // التعديل 8
+  const _riskLevel = getRiskLevel(o);
+  const _riskNum   = getRiskNum(o);
+  const _roiPotential = getRoiPotential(o);
+  const _roiNum    = getRoiNum(o);
   const ffColor = ff >= 70 ? 'var(--success)' : ff >= 50 ? 'var(--warn)' : 'var(--danger)';
 
   // بادج مصادر البيانات (التعديل 11)
@@ -447,8 +494,8 @@ function oppCard(o, showSector) {
       // شريط توافق المؤسس (التعديل 7)
       (ff ? '<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:2px"><span>توافق المؤسس</span><span style="font-weight:700;color:' + ffColor + '">' + ff + '%</span></div><div style="height:4px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + ff + '%;background:' + ffColor + ';border-radius:3px"></div></div></div>' : '') +
       '<div class="opp-footer">' +
-        (o.risk_level ? '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">المخاطرة:</span>' + riskBadge(o.risk_level, o.risk_num) + '</span>' : '') +
-        (o.roi_potential ? '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">العائد:</span>' + roiBadge(o.roi_potential, o.roi_num) + '</span>' : '') +
+        '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">المخاطرة:</span>' + riskBadge(_riskLevel, _riskNum) + '</span>' +
+        '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">العائد:</span>' + roiBadge(_roiPotential, _roiNum) + '</span>' +
         (o.investment_range ? '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">الميزانية:</span><span class="badge bb">' + o.investment_range + '</span></span>' : '') +
         (o.time_to_market ? '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">الوقت:</span><span class="badge bp">' + o.time_to_market + '</span></span>' : '') +
         srcIcons +   // التعديل 11
@@ -463,7 +510,7 @@ function oppCard(o, showSector) {
 // ══════════════════════════════════════════════
 function microCard(m) {
   const k = _put(m);
-  const roi12 = m.engine?.roi_12m || 0;             // التعديل 10
+  const roi12 = calcMicroRoi12(m);                   // التعديل 10: محسوب من monthly_revenue/costs/initial_cost
   const verdict = m.engine?.go_nogo?.verdict || '';  // التعديل 6 للمصغّرة
   const sh = m.engine?.side_hustle?.feasible;        // التعديل 8 للمصغّرة
   return '<div class="micro-card" onclick="openMicroDetail(\'' + k + '\')">' +
@@ -477,9 +524,9 @@ function microCard(m) {
     '<div class="mc-meta">مشتق من: ' + (m.derived_from || '') + ' · ' + (m.category || '') + ' · <span class="badge by">' + (m.launch_speed || '') + '</span></div>' +
     '<div class="mc-stats">' +
       '<span><strong>التكلفة:</strong> ' + (m.startup_cost || '') + '</span>' +
-      '<span><strong>الإيراد:</strong> ' + (m.monthly_revenue_estimate || '') + '/شهر</span>' +
+      '<span><strong>الإيراد:</strong> ' + (m.monthly_revenue ? m.monthly_revenue.toLocaleString('ar-SA') + ' ر' : '—') + '/شهر</span>' +
       '<span><strong>التعادل:</strong> ' + (m.break_even_months || '?') + ' أشهر</span>' +
-      '<span><strong>المخاطرة:</strong> ' + (m.risk_level || '') + '</span>' +
+      '<span><strong>المخاطرة:</strong> ' + getMicroRiskLevel(m) + '</span>' +
     '</div>' +
   '</div>';
 }
@@ -718,9 +765,9 @@ function initCharts(opps, secs) {
       type: 'bar',
       data: {
         labels: top10.map(o => (o.name || '').split(' ').slice(0, 3).join(' ')),
-        datasets: [{ label: 'الدرجة', data: top10.map(o => o.score || 0),
-          backgroundColor: top10.map(o => o.score >= 75 ? '#16a34a80' : o.score >= 60 ? '#2563eb80' : '#f59e0b80'),
-          borderColor: top10.map(o => o.score >= 75 ? '#16a34a' : o.score >= 60 ? '#2563eb' : '#f59e0b'),
+        datasets: [{ label: 'الدرجة', data: top10.map(o => getScore(o)),
+          backgroundColor: top10.map(o => getScore(o) >= 75 ? '#16a34a80' : getScore(o) >= 60 ? '#2563eb80' : '#f59e0b80'),
+          borderColor: top10.map(o => getScore(o) >= 75 ? '#16a34a' : getScore(o) >= 60 ? '#2563eb' : '#f59e0b'),
           borderWidth: 2, borderRadius: 6 }]
       },
       options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 100 } } }
@@ -730,8 +777,8 @@ function initCharts(opps, secs) {
   // 2. Risk distribution pie
   const riskCount = { 'منخفض': 0, 'متوسط': 0, 'عالي': 0 };
   opps.forEach(o => {
-    const rn = o.risk_num || 3;
-    const rl = o.risk_level || '';
+    const rn = getRiskNum(o);
+    const rl = getRiskLevel(o);
     // "متوسط-عالي" → متوسط (not عالي)
     if (rl.includes('متوسط-عالي') || rl === 'متوسط-عالي') riskCount['متوسط']++;
     else if (rn <= 2) riskCount['منخفض']++;
@@ -777,7 +824,7 @@ function initCharts(opps, secs) {
       data: {
         datasets: secs.map((sec, i) => ({
           label: sec.sector_name || sec.sector_id,
-          data: (sec.opportunities || []).map(o => ({ x: o.risk_num || 3, y: o.roi_num || 3, name: o.name })),
+          data: (sec.opportunities || []).map(o => ({ x: getRiskNum(o), y: getRoiNum(o), name: o.name })),
           backgroundColor: colors[i % colors.length] + '90',
           borderColor: colors[i % colors.length],
           pointRadius: 7, pointHoverRadius: 9,
@@ -802,8 +849,8 @@ function renderMatrix(opps) {
   const cells = {};
   for (let r = 1; r <= 5; r++) for (let c = 1; c <= 5; c++) cells[r + '-' + c] = [];
   opps.forEach(o => {
-    const rk = Math.max(1, Math.min(5, o.risk_num || 3));
-    const ro = Math.max(1, Math.min(5, o.roi_num || 3));
+    const rk = getRiskNum(o);
+    const ro = getRoiNum(o);
     cells[ro + '-' + rk].push(o);
   });
 
@@ -1087,6 +1134,10 @@ function closeDetail() {
 function renderDetail(o) {
   const bm = isBm(o.name);
   const bmName = (o.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  const _riskLevel = getRiskLevel(o);
+  const _riskNum   = getRiskNum(o);
+  const _roiPotential = getRoiPotential(o);
+  const _roiNum    = getRoiNum(o);
 
   // ① Large score ring header
   const hdr =
@@ -1100,8 +1151,8 @@ function renderDetail(o) {
         '</div>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
           verdictBadge(getVerdict(o)) +    // التعديل 6 في panel
-          (o.risk_level ? '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">المخاطرة:</span>' + riskBadge(o.risk_level, o.risk_num) + '</span>' : '') +
-          (o.roi_potential ? '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">العائد:</span>' + roiBadge(o.roi_potential, o.roi_num) + '</span>' : '') +
+          '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">المخاطرة:</span>' + riskBadge(_riskLevel, _riskNum) + '</span>' +
+          '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">العائد:</span>' + roiBadge(_roiPotential, _roiNum) + '</span>' +
           (o.investment_range ? '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">الميزانية:</span><span class="badge bb">' + o.investment_range + '</span></span>' : '') +
           (o.time_to_market ? '<span style="display:inline-flex;align-items:center;gap:3px"><span style="font-size:10px;color:var(--muted);font-weight:600">الوقت:</span><span class="badge bp">' + o.time_to_market + '</span></span>' : '') +
           (o.engine?.side_hustle?.feasible ? '<span class="badge bg">💼 بجانب وظيفتك ✓</span>' : '') +   // التعديل 8 في panel
@@ -1290,32 +1341,39 @@ function renderDetail(o) {
 
   // ③ Score correction banner removed — corrected score displays as final score silently
 
-  // ④ Sanity check warnings
-  const sanity = o.sanity_check || {};
-  const flags = sanity.flags || [];
+  // ④ Sanity check warnings — JSON has sanity_warnings[] (array of strings), not sanity_check.flags
+  const flags = o.sanity_warnings || [];
   const sanityHtml = flags.length ?
     '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--rsm);padding:12px 14px;margin-bottom:16px">' +
       '<strong style="font-size:12px;color:var(--danger)">🚩 تحذيرات الواقعية المالية</strong>' +
-      flags.map(f => '<div style="font-size:11px;color:#991b1b;margin-top:5px">• <strong>' + (f.metric || '') + '</strong>: ' + (f.value || '') + ' — ' + (f.issue || '') + (f.typical ? ' (النطاق الطبيعي: ' + f.typical + ')' : '') + '</div>').join('') +
+      flags.map(f => '<div style="font-size:11px;color:#991b1b;margin-top:5px">• ' + (typeof f === 'string' ? f : JSON.stringify(f)) + '</div>').join('') +
     '</div>' : '';
 
   // ⑤ Problem / Solution / Saudi Opportunity
-  const pss =
+  // JSON الجديد لا يحتوي problem/solution كحقول مستقلة — نستخدم description_ar كـ fallback
+  const _hasPss = o.problem || o.solution || o.description_ar;
+  const pss = _hasPss ?
     '<div class="det-sec"><div class="det-sec-title">⑤ المشكلة · الحل · الفرصة</div>' +
-      '<div style="background:#fff7ed;border-radius:var(--rsm);padding:12px;margin-bottom:8px;font-size:13px;border:1px solid #fed7aa;line-height:1.7">' +
-        '<strong>🔴 المشكلة:</strong> ' + (o.problem || '—') +
-      '</div>' +
-      '<div style="background:#f0fdf4;border-radius:var(--rsm);padding:12px;margin-bottom:8px;font-size:13px;border:1px solid #bbf7d0;line-height:1.7">' +
-        '<strong>🟢 الحل:</strong> ' + (o.solution || '—') +
-      '</div>' +
+      (o.problem ?
+        '<div style="background:#fff7ed;border-radius:var(--rsm);padding:12px;margin-bottom:8px;font-size:13px;border:1px solid #fed7aa;line-height:1.7">' +
+          '<strong>🔴 المشكلة:</strong> ' + o.problem +
+        '</div>' : '') +
+      (o.solution ?
+        '<div style="background:#f0fdf4;border-radius:var(--rsm);padding:12px;margin-bottom:8px;font-size:13px;border:1px solid #bbf7d0;line-height:1.7">' +
+          '<strong>🟢 الحل:</strong> ' + o.solution +
+        '</div>' : '') +
+      (!o.problem && !o.solution && o.description_ar ?
+        '<div style="background:#f8fafc;border-radius:var(--rsm);padding:12px;margin-bottom:8px;font-size:13px;border:1px solid var(--border);line-height:1.7">' +
+          '<strong>📋 الوصف:</strong> ' + o.description_ar +
+        '</div>' : '') +
       (o.saudi_opportunity ?
         '<div style="background:#eff6ff;border-radius:var(--rsm);padding:12px;font-size:13px;border:1px solid #bfdbfe;line-height:1.7">' +
           '<strong>🇸🇦 الفرصة في السعودية:</strong> ' + o.saudi_opportunity +
         '</div>' : '') +
-    '</div>';
+    '</div>' : '';
 
-  // ⑥ TAM / SAM / SOM
-  const ms = o.market_sizing || {};
+  // ⑥ TAM / SAM / SOM — JSON uses "market" not "market_sizing"
+  const ms = o.market || {};
   const tsmSection = (ms.tam || ms.sam || ms.som) ?
     '<div class="det-sec"><div class="det-sec-title">⑥ حجم السوق</div>' +
       '<div class="tsm">' +
@@ -1510,7 +1568,7 @@ function renderMicroDetail(m) {
       '<div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap">' +
         '<span class="badge by">' + (m.launch_speed || '') + '</span>' +
         '<span class="badge bo">' + (m.startup_cost || '') + '</span>' +
-        '<span class="badge ' + (m.risk_level === 'منخفض' ? 'bg' : m.risk_level?.includes('متوسط') ? 'by' : 'br') + '">' + (m.risk_level || '') + '</span>' +
+        ((() => { const rl = getMicroRiskLevel(m); return '<span class="badge ' + (rl === 'منخفض' ? 'bg' : rl === 'متوسط' ? 'by' : 'br') + '">' + rl + '</span>'; })()) +
       '</div>' +
     '</div>' +
     '<button class="det-close" onclick="closeDetail()">✕</button>' +
@@ -1526,8 +1584,8 @@ function renderMicroDetail(m) {
   '<div class="det-sec"><div class="det-sec-title">الأرقام المالية</div>' +
   '<div class="ue">' +
   '<div class="ue-c"><div class="ue-l">التكلفة المبدئية</div><div class="ue-v" style="color:var(--primary)">' + (m.startup_cost || '—') + '</div></div>' +
-  '<div class="ue-c"><div class="ue-l">الإيراد الشهري المتوقع</div><div class="ue-v" style="color:var(--success)">' + (m.monthly_revenue_estimate || '—') + '</div></div>' +
-  '<div class="ue-c"><div class="ue-l">التكاليف الشهرية</div><div class="ue-v">' + (m.monthly_costs_estimate || '—') + '</div></div>' +
+  '<div class="ue-c"><div class="ue-l">الإيراد الشهري المتوقع</div><div class="ue-v" style="color:var(--success)">' + (m.monthly_revenue ? m.monthly_revenue.toLocaleString('ar-SA') + ' ر' : '—') + '</div></div>' +
+  '<div class="ue-c"><div class="ue-l">التكاليف الشهرية</div><div class="ue-v">' + (m.monthly_costs ? m.monthly_costs.toLocaleString('ar-SA') + ' ر' : '—') + '</div></div>' +
   '<div class="ue-c"><div class="ue-l">نقطة التعادل</div><div class="ue-v">' + (m.break_even_months || '?') + ' أشهر</div></div>' +
   '</div>' +
   '</div>' +
