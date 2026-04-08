@@ -660,7 +660,7 @@ function renderSectors(opps, secs) {
     '</div>';
   } else {
     const filtered = filteredOpps(opps);
-    if (S.search || S.risk !== 'all') {
+    if (S.search || S.risk !== 'all' || S.verdict !== 'all' || S.sideHustle || S.sortBy !== 'score') {
       content = toolbar + (filtered.length ? filtered.map(o => oppCard(o)).join('') : '<div class="empty"><div class="empty-icon">🔍</div>لا توجد نتائج</div>');
     } else {
       // Show sector cards grid
